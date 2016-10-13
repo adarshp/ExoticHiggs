@@ -1,5 +1,5 @@
-ExoticHiggs
-===========
+..
+==
 
 .. toctree::
    :maxdepth: 4
@@ -13,5 +13,4 @@ ExoticHiggs
    generate_events
    helper_functions
    myProcesses
-   py
    setup
