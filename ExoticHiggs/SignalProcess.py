@@ -14,8 +14,8 @@ class TwoHiggsDoubletModelProcess(Process):
     def make_index(self):
         return '_'.join(["mA", self.bp.mA, "tb", self.bp.tb])
 
-    def generate_events(self, nb_run = 1, nevents = 10000):
-        self.setup_for_generation(nb_run, nevents)
+    def generate_events(self, nruns = 1, nevents = 10000):
+        self.setup_for_generation(nruns, nevents)
 
         def set_2HDM_params(line):
             words = line.split()

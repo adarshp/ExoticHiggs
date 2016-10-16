@@ -1,5 +1,4 @@
-import os
-import re
+import re, os
 import subprocess as sp
 import shutil as sh
 from helpers import *
@@ -33,7 +32,7 @@ class Process(object):
             f.write('import model {}\n'.format(self.model))
             f.write(self.mg5_generation_syntax+'\n')
             f.write('output '+self.directory)
-        sp.call(['./Tools/mg5/bin/mg5_aMC', proc_card])
+        sp.call(['./Tools/mg5/bin/mg5_aMC', proc_card], stdout = open(os.devnull, 'w'))
 
     def process_type(self):
         if self.model == 'sm': return 'Background'
@@ -42,60 +41,35 @@ class Process(object):
     def copy_cards(self):
         destination = self.directory+'/Cards/'
         sh.copy('Cards/run_cards/run_card.dat', destination)
-        sh.copy('Cards/delphes_cards/delphes_card.dat', destination)
+        if self.energy == '100_TeV':
+            sh.copy('Cards/delphes_cards/FCChh.tcl', destination+'delphes_card.dat')
+        else: 
+            sh.copy('Cards/delphes_cards/delphes_card.dat', destination)
+
+        sh.copy('Cards/run_cards/run_card.dat', destination)
         sh.copy('Cards/pythia_cards/pythia_card.dat', destination)
 
-    def write_pbs_script(self, myClusterConfig, nb_run):
-        pbs_script_template = """\
-#!/bin/bash
-#PBS -m bea
-#PBS -N {jobname}
-#PBS -M {email}
-#PBS -W group_list={group_list}
-#PBS -q standard
-#PBS -l jobtype=htc_only
-#PBS -l select=1:ncpus=5:mem=23gb
-#PBS -l cput=0:{cput}:0
-#PBS -l walltime=0:{walltime}:0
-cd /extra/{username}/ExoticHiggs/{mg5_process_dir}
-for i in {{1..{nb_run}}}
-do
-  ./bin/generate_events -f --laststep=delphes
-  ./bin/madevent remove all parton -f
-  ./bin/madevent remove all pythia -f
-  rm -rf Events/run_*/tag_*_delphes_events.root
-done
-echo "DONE"
-exit 0"""
-
+    def write_pbs_script(self, nruns):
         with open('submit.pbs', 'w') as f:
-            f.write(pbs_script_template.format(
-                    jobname = self.name[:15],
+            f.write(myClusterConfig.pbs_script_template.format(
+                    jobname = self.name,
                     email = myClusterConfig.email,
                     group_list = myClusterConfig.group_list,
                     username = myClusterConfig.username,
-                    cput = str(15*nb_run),
-                    walltime = str(30*nb_run),
+                    cput = str(15*nruns),
+                    walltime = str(30*nruns),
                     mg5_process_dir = self.directory,
-                    nb_run = str(nb_run),
+                    nruns = str(nruns),
                   ))
-
     
-    def setup_for_generation(self, nb_run, nevents):
+    def setup_for_generation(self, nruns, nevents):
         self.copy_cards()
-        def set_beam_energy(line): 
-            ebeam = int(self.energy.split('_')[0])*500
-            if 'ebeam1' in line.split(): 
-                return str(ebeam)+' = ebeam1 ! beam1 total energy in GeV\n'
-            elif 'ebeam2' in line.split(): 
-                return str(ebeam)+' = ebeam2 ! beam2 total energy in GeV\n'
-            else: 
-                return line
         with cd(self.directory):
-            self.write_pbs_script(myClusterConfig, nb_run)
+            self.write_pbs_script(nruns)
             modify_file('Cards/run_card.dat',set_beam_energy) 
             modify_file('Cards/run_card.dat', lambda x: re.sub(r'\d* = nev', str(nevents)+" = nev", x))
 
-    def generate_events(self, nb_run = 1, nevents = 10000):
-        self.setup_for_generation(nb_run, nevents)
-        sp.call(['qsub', 'submit.pbs'], stdout = open(os.devnull, 'w')) 
+    def generate_events(self, nruns = 1, nevents = 10000):
+        self.setup_for_generation(nruns, nevents)
+        with cd(self.directory):
+            sp.call(['qsub', 'submit.pbs'], stdout = open(os.devnull, 'w')) 
