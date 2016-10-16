@@ -33,14 +33,14 @@ def install_madgraph():
         shutil.rmtree('mg5')
 
     # Download MadGraph 5
-    logging.info("Downloading MadGraph5 v2.4.3 ...")
+    logging.info("Downloading MadGraph5 v2.2.3 ...")
     sp.call(['wget',
-    'https://launchpad.net/mg5amcnlo/2.0/2.4.x/+download/MG5_aMC_v2.4.3.tar.gz'])
-    sp.call(['tar','-zxvf','MG5_aMC_v2.4.3.tar.gz'])
-    os.rename('MG5_aMC_v2_4_3','mg5')
+    'https://launchpad.net/mg5amcnlo/2.0/2.2.x/+download/MG5_aMC_v2.2.3.tar.gz'])
+    sp.call(['tar','-zxvf','MG5_aMC_v2.2.3.tar.gz'])
+    os.rename('MG5_aMC_v2_2_3','mg5')
 
     # Delete the tarball
-    os.remove('MG5_aMC_v2.4.3.tar.gz')
+    os.remove('MG5_aMC_v2.2.3.tar.gz')
 
     with cd('mg5'):
         # Write a script to install Pythia
