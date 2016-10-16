@@ -6,6 +6,13 @@ import contextlib
 import untangle
 
 """ Some helper functions. """
+
+def common_path(process, energy):
+    return '/'.join([process.name, process.decay_channel, str(energy)])
+    
+def mg5_process_dir(process, energy, index):
+    return '/'.join(['mg5_processes', process.process_type+'s', common_path(process, energy), str(index)])
+
 def convert_SAF_to_XML(filename):
     """ Converts a SAF file to XML """
 

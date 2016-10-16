@@ -25,8 +25,8 @@ class SignalProcess(Process):
         self.bp = '_'.join(["mH", self.mH, "mA", self.mA, "mC", self.mC,
                             "tb", self.tb, "cba", self.cba,"m122", self.m122])
 
-        self.output_directory = '/'.join(["Events",self.process_type+"s",
-                                         self.name, self.bp])
+        self.common_path = '/'.join([self.process_type+'s', self.name, self.decay_channel, self.bp])
+        self.process_directory = "mg5_processes/"+self.common_path
 
         self.proc_card_path = "Cards/proc_cards/"+self.name+"_proc_card.dat"
         self.param_card = None
@@ -35,13 +35,13 @@ class SignalProcess(Process):
         with open(self.proc_card_path, 'w') as f:
             f.write('import model 2HDM_HEFT\n')
             f.write(self.mg5_generation_syntax)
-            f.write('output '+self.output_directory)
+            f.write('output '+self.process_directory)
 
     def make_original_input_list(self, analysis_directory):
         """ Gathers filepaths for the events and writes them to the Input sub-
         directory of the analysis directory. """
 
-        with cd(self.output_directory+'/Events'):
+        with cd(self.process_directory+'/Events'):
             cwd = os.getcwd()
             inputfiles = glob.glob('*/*.lhco.gz')
             inputfiles = [cwd+'/'+path for path in inputfiles]
@@ -69,5 +69,5 @@ class SignalProcess(Process):
 
         modify_file('Cards/param_cards/param_card.dat', set_params)
         sh.copy('Cards/param_cards/param_card.dat',
-                self.output_directory+'/Cards/param_card.dat')
+                self.process_directory+'/Cards/param_card.dat')
     
