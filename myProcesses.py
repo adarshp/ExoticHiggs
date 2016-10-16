@@ -1,26 +1,23 @@
-from collections import namedtuple
+import ExoticHiggs
+from ExoticHiggs.Process import Process
+from ExoticHiggs.SignalProcess import TwoHiggsDoubletModelProcess
+from myBenchmarkPlanes import BP_IA
 
-Process = namedtuple('Process', [ 
-                                  'name',
-                                  'model',
-                                  'decay_channel',
-                                  'process_type',
-                                  'mg5_generation_syntax',
-                                ])
-A_HZ_bbll = Process(
+A_HZ_bbll_14_TeV_collection = [TwoHiggsDoubletModelProcess(
         name = 'A_HZ',
         decay_channel = 'bbll',
-        process_type = 'Signal',
-        model = '2HDM_HEFT',
         mg5_generation_syntax = """\
         generate g g > h3 , ( h3 > h2 z , h2 > b b~ , z > l+ l- )""",
-    )
+        energy = 14,
+        benchmark_point = bp,
+    ) for bp in BP_IA]
 
-tt_bbll = Process(
+tt_bbll_14_TeV_collection = [Process(
         name = 'tt',
-        decay_channel = 'bbll',
-        process_type = 'Background',
         model = 'sm',
+        decay_channel = 'bbll',
         mg5_generation_syntax = """\
         generate p p > t t~, (t > w+ b, w+ > l+ vl), (t~ > w- b~, w- > l- vl~)""",
-    )
+        energy = 14,
+        index = index,
+    ) for index in range(0,30)]

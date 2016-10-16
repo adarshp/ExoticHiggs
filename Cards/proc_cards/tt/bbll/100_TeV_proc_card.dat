@@ -1,0 +1,3 @@
+import model sm
+        generate p p > t t~, (t > w+ b, w+ > l+ vl), (t~ > w- b~, w- > l- vl~)
+output mg5_processes/Backgrounds/tt/bbll/100_TeV/29
