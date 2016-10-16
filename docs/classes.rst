@@ -1,12 +1,7 @@
-.. _classes:
+classes module
+==============
 
-Classes
-=======
-
-.. autoclass:: SignalProcess.SignalProcess
-  :members:
-  :show-inheritance:
-
-.. autoclass:: Process.Process
-  :members:
-  :show-inheritance:
+.. automodule:: classes
+    :members:
+    :undoc-members:
+    :show-inheritance:
