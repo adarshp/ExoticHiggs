@@ -9,7 +9,7 @@ generated events. In addition, it copies the folder ``2HDM_HEFT`` to the
 
 import subprocess as sp
 import os, shutil, logging
-from helper_functions import cd, modify_file
+from ExoticHiggs.helpers import cd, modify_file
 
 # Set up logging
 logging.basicConfig(level=logging.INFO,
