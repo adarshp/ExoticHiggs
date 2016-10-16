@@ -771,17 +771,17 @@ module UniqueObjectFinder UniqueObjectFinder {
 
 module TreeWriter TreeWriter {
 # add Branch InputArray BranchName BranchClass
-  add Branch Delphes/allParticles Particle GenParticle
+#  add Branch Delphes/allParticles Particle GenParticle
 
-  add Branch GenJetFinder/jets GenJet Jet
-  add Branch GenMissingET/momentum GenMissingET MissingET
+#  add Branch GenJetFinder/jets GenJet Jet
+#  add Branch GenMissingET/momentum GenMissingET MissingET
 
   add Branch TrackMerger/tracks Track Track
   add Branch Calorimeter/towers Tower Tower
 
-  add Branch HCal/eflowTracks EFlowTrack Track
-  add Branch ECal/eflowPhotons EFlowPhoton Tower
-  add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
+#  add Branch HCal/eflowTracks EFlowTrack Track
+#  add Branch ECal/eflowPhotons EFlowPhoton Tower
+#  add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
 
   add Branch UniqueObjectFinder/photons Photon Photon
   add Branch UniqueObjectFinder/electrons Electron Electron
@@ -789,6 +789,6 @@ module TreeWriter TreeWriter {
   add Branch UniqueObjectFinder/jets Jet Jet
 
   add Branch MissingET/momentum MissingET MissingET
-  add Branch ScalarHT/energy ScalarHT ScalarHT
+#  add Branch ScalarHT/energy ScalarHT ScalarHT
 }
 
