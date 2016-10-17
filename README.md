@@ -22,7 +22,6 @@ Installation
   cd ExoticHiggs
   make
 ```
-
 3. For installation on the cluster, please refer to the 
 [documentation](http://exotichiggs.readthedocs.io).
 
