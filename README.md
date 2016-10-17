@@ -17,9 +17,11 @@ Installation
 
 2. If you are installing on your local machine, go ahead and do the following::
 
-    git clone https://github.com/adarshp/ExoticHiggs
-    cd ExoticHiggs
-    make
+```
+  git clone https://github.com/adarshp/ExoticHiggs
+  cd ExoticHiggs
+  make
+```
 
 3. For installation on the cluster, please refer to the 
 [documentation](http://exotichiggs.readthedocs.io).
