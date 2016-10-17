@@ -5,10 +5,29 @@ from helpers import *
 from ClusterConfiguration import myClusterConfig
 
 class Process(object):
+    """ A template for a particle collision process."""
     def __init__(
             self, name, model, decay_channel, 
             mg5_generation_syntax, energy, index):
 
+        """ Initialize a new instance of Process with the following parameters:
+
+        Parameters
+        ----------
+        name : str
+            The name of the process, e.g. 'A_HZ', 'tt', etc. 
+        model : str
+            The name of the model for MadGraph to import while generating the
+            process. For example - '2HDM_HEFT', 'sm', etc.
+        decay_channel : str
+            The name of the decay channel. For example, 'bbll', 'fully_leptonic',
+            etc.
+        mg5_generation_syntax : str
+            The generation syntax for this process (not including the model
+            declaration). Example: ``generate p p > t t~``.
+        energy : str
+            The center-of-mass collision energy, in TeV.
+        """
         self.name = name
         self.model = model
         self.decay_channel = decay_channel
@@ -16,12 +35,13 @@ class Process(object):
         self.energy = str(energy)+'_TeV'
         self.index = str(index)
 
-        self.common_path = '/'.join([self.process_type()+'s', self.name, 
+        self._common_path = '/'.join([self._process_type()+'s', self.name, 
                                      self.decay_channel, self.energy, self.index])
         self.directory = '/'.join(['Events', self.common_path])
 
     def create_directory(self):
-        proc_card = '/'.join(['Cards/proc_cards', self.common_path+ '_proc_card.dat'])
+        """ Create a MadGraph5 directory for the process. """
+        proc_card = '/'.join(['Cards/proc_cards', self._common_path+ '_proc_card.dat'])
         if not os.path.exists(os.path.dirname(proc_card)):
             try:
                 os.makedirs(os.path.dirname(proc_card))
@@ -34,11 +54,15 @@ class Process(object):
             f.write('output '+self.directory)
         sp.call(['./Tools/mg5/bin/mg5_aMC', proc_card], stdout = open(os.devnull, 'w'))
 
-    def process_type(self):
+    def _process_type(self):
         if self.model == 'sm': return 'Background'
         else: return 'Signal'
 
     def copy_cards(self):
+        """ Copy the run, pythia, and delphes cards to the process directory.
+        The default run card is for 14 TeV. If the energy given is '100_TeV'
+        instead, then the FCC delphes card will be copied.
+        """
         destination = self.directory+'/Cards/'
         sh.copy('Cards/run_cards/run_card.dat', destination)
         if self.energy == '100_TeV':
@@ -70,6 +94,17 @@ class Process(object):
             modify_file('Cards/run_card.dat', lambda x: re.sub(r'\d* = nev', str(nevents)+" = nev", x))
 
     def generate_events_locally(self, nruns = 1, nevents = 10000):
+        """ Generate events on your local computer.
+
+        Parameters
+        ----------
+
+        nruns : int
+            Number of runs to perform.
+        nevents : int
+            Number of events to generate per run.
+        """
+
         self.setup_for_generation(nruns, nevents)
         with cd(self.directory):
             for run in range(0, nruns):
@@ -79,6 +114,16 @@ class Process(object):
                 sp.call('rm -rf Events/run_*/tag_*_delphes_events.root', shell = True)
 
     def generate_events(self, nruns = 1, nevents = 10000):
+        """ Generate events on your local computer.
+
+        Parameters
+        ----------
+
+        nruns : int
+            Number of runs to perform.
+        nevents : int
+            Number of events to generate per run.
+        """
         self.setup_for_generation(nruns, nevents)
         with cd(self.directory):
             sp.call(['qsub', 'submit.pbs'], stdout = open(os.devnull, 'w')) 

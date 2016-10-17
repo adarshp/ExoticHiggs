@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Exotic Higgses at 14 and 100 TeV &mdash; ExoticHiggs 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ExoticHiggs 0.2 documentation" href="#" />
+    <link rel="next" title="Installation" href="getting_started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="exotic-higgses-at-14-and-100-tev">
+<h1>Exotic Higgses at 14 and 100 TeV<a class="headerlink" href="#exotic-higgses-at-14-and-100-tev" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the documentation for the Exotic Higgs project. With this project
+we aim to characterize the reach attainable at the LHC and a future 100 TeV
+proton-proton collider for exotic Higgses in the Two-Higgs Doublet Model.</p>
+<p>The first step in the pheno analysis pipeline is to identify a promising search
+channel. A few promising channels and benchmark planes have been proposed in
+the paper <a class="reference external" href="https://arxiv.org/abs/1604.01406">Anatomy of Exotic Higgs Decays in 2HDM</a>. The next step is to
+simulate what we would see at a particle collider. This package provides an
+interface to MadGraph5, Pythia and Delphes that you can use to set up large-
+scale event generation on a cluster. The option to generate events locally is
+also present.</p>
+<p><strong>Table of Contents</strong></p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Installation</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="event_generation.html">Tutorial: Event Generation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="event_generation.html#creating-mg5-directories">Creating MG5 directories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event_generation.html#generating-events">Generating events</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cluster_issues.html">Cluster Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#version-control">Version control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#writing-documentation">Writing documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ExoticHiggs.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs.ClusterConfiguration">ExoticHiggs.ClusterConfiguration module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs.Process">ExoticHiggs.Process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs.SignalProcess">ExoticHiggs.SignalProcess module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs.SignificanceCalculator">ExoticHiggs.SignificanceCalculator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs.helpers">ExoticHiggs.helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ExoticHiggs.html#module-ExoticHiggs">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p><strong>Indices</strong></p>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">ExoticHiggs</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=adarshp&repo=ExoticHiggs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_generation.html">Tutorial: Event Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster_issues.html">Cluster Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ExoticHiggs.html">API documentation</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Adarsh Pyarelal.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/adarshp/ExoticHiggs" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

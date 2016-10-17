@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>setup &mdash; ExoticHiggs 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ExoticHiggs 0.2 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for setup</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;This script will create a directory named `Tools`, then download</span>
+<span class="sd">and install MadGraph 2.4.3 and the latest version of Delphes, and then link them</span>
+<span class="sd">together. It will also create a directory named `Events` with the </span>
+<span class="sd">subdirectories `Events/Signals` and `Events/Backgrounds` to hold the</span>
+<span class="sd">generated events. In addition, it copies the folder ``2HDM_HEFT`` to the </span>
+<span class="sd">``models`` subdirectory of the MadGraph directory (located at ``Tools/mg5``.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">ExoticHiggs.helpers</span> <span class="kn">import</span> <span class="n">cd</span><span class="p">,</span> <span class="n">modify_file</span>
+
+<span class="c1"># Set up logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                    <span class="n">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="install_delphes"><a class="viewcode-back" href="../setup.html#setup.install_delphes">[docs]</a><span class="k">def</span> <span class="nf">install_delphes</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Downloads Delphes into the current directory, and compiles it with</span>
+<span class="sd">    8 cores.&quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;delphes&#39;</span><span class="p">):</span> <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="s1">&#39;delphes&#39;</span><span class="p">)</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;clone&#39;</span><span class="p">,</span> <span class="s1">&#39;https://github.com/delphes/delphes.git&#39;</span><span class="p">])</span>
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s1">&#39;delphes&#39;</span><span class="p">):</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;./configure; make -j 8&#39;</span><span class="p">,</span> <span class="n">shell</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="install_madgraph"><a class="viewcode-back" href="../setup.html#setup.install_madgraph">[docs]</a><span class="k">def</span> <span class="nf">install_madgraph</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Downloads and installs MadGraph5 to the current directory. Also installs</span>
+<span class="sd">    installs pythia-pgs to the MadGraph directory.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;mg5&#39;</span><span class="p">):</span> 
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;mg5 directory exists, removing it for a fresh install.&#39;</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="s1">&#39;mg5&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Download MadGraph 5</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading MadGraph5 v2.2.3 ...&quot;</span><span class="p">)</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;wget&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;https://launchpad.net/mg5amcnlo/2.0/2.2.x/+download/MG5_aMC_v2.2.3.tar.gz&#39;</span><span class="p">])</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;tar&#39;</span><span class="p">,</span><span class="s1">&#39;-zxvf&#39;</span><span class="p">,</span><span class="s1">&#39;MG5_aMC_v2.2.3.tar.gz&#39;</span><span class="p">])</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;MG5_aMC_v2_2_3&#39;</span><span class="p">,</span><span class="s1">&#39;mg5&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Delete the tarball</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;MG5_aMC_v2.2.3.tar.gz&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s1">&#39;mg5&#39;</span><span class="p">):</span>
+        <span class="c1"># Write a script to install Pythia</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;install_pythia.cmd&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;install pythia-pgs</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Run MG5 with the commands to install Pythia and Delphes</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;./bin/mg5_aMC&#39;</span><span class="p">,</span><span class="s1">&#39;install_pythia.cmd&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="download_madanalysis"><a class="viewcode-back" href="../setup.html#setup.download_madanalysis">[docs]</a><span class="k">def</span> <span class="nf">download_madanalysis</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Downloads and extracts MadAnalysis5 to the current directory. Also </span>
+<span class="sd">    modifies the LHCOReader.cpp file so that MadAnalysis can deal with the new</span>
+<span class="sd">    32-bit b-tagging prescription used by Delphes. &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Download MadAnalysis5</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;madanalysis5&#39;</span><span class="p">):</span> <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="s1">&#39;madanalysis5&#39;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;wget&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;https://launchpad.net/madanalysis5/trunk/v1.4/+download/MadAnalysis5_v1.4.tar.gz&#39;</span><span class="p">])</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Dowloading MadAnalysis5 v1.4 failed </span><span class="se">\</span>
+<span class="s2">        - check https://launchpad.net/madanalysis5 for a newer version.&quot;</span><span class="p">)</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;tar&#39;</span><span class="p">,</span><span class="s1">&#39;-zxvf&#39;</span><span class="p">,</span><span class="s1">&#39;MadAnalysis5_v1.4.tar.gz&#39;</span><span class="p">])</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;MadAnalysis5_v1.4.tar.gz&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Modify the LHCOReader file </span>
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s1">&#39;madanalysis5/tools/SampleAnalyzer/Process/Reader&#39;</span><span class="p">):</span>
+        <span class="n">modify_file</span><span class="p">(</span><span class="s1">&#39;LHCOReader.cpp&#39;</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;tmp ==2&#39;</span><span class="p">,</span> <span class="s1">&#39;tmp == 3&#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="specify_delphes_path"><a class="viewcode-back" href="../setup.html#setup.specify_delphes_path">[docs]</a><span class="k">def</span> <span class="nf">specify_delphes_path</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A helper function to check if a line starts with a delphes option, </span>
+<span class="sd">    to specify the correct Delphes path</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    line : string</span>
+<span class="sd">        The line to process</span>
+<span class="sd">    delphes_path : string</span>
+<span class="sd">        The relative path of the Delphes directory from the package directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;# delphes_&#39;</span><span class="p">):</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;delphes_includes&#39;</span><span class="p">,</span> <span class="s1">&#39;delphes_libs&#39;</span><span class="p">,</span> <span class="s1">&#39;delphes_path&#39;</span><span class="p">]:</span>
+            <span class="n">delphes_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/delphes&#39;</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;{} = {}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">delphes_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">line</span>
+</div>
+<div class="viewcode-block" id="link_package_with_delphes"><a class="viewcode-back" href="../setup.html#setup.link_package_with_delphes">[docs]</a><span class="k">def</span> <span class="nf">link_package_with_delphes</span><span class="p">(</span><span class="n">package_name</span><span class="p">,</span> <span class="n">package_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Links the specified package with Delphes </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    package_name : string</span>
+<span class="sd">        The name of the package. Available options: madgraph, madanalysis</span>
+<span class="sd">    package_path : string</span>
+<span class="sd">        Relative path to the package</span>
+<span class="sd">    delphes_path : string</span>
+<span class="sd">        Relative path to Delphes (from the package directory)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">package_name</span> <span class="o">==</span> <span class="s1">&#39;madgraph&#39;</span><span class="p">:</span> 
+        <span class="n">configfile</span> <span class="o">=</span> <span class="s1">&#39;input/mg5_configuration.txt&#39;</span>
+    <span class="k">elif</span> <span class="n">package_name</span> <span class="o">==</span> <span class="s1">&#39;madanalysis&#39;</span><span class="p">:</span> 
+        <span class="n">configfile</span> <span class="o">=</span> <span class="s1">&#39;madanalysis/input/installation_options.dat&#39;</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="s1">&#39;package_name must be </span><span class="se">\&#39;</span><span class="s1">madgraph</span><span class="se">\&#39;</span><span class="s1"> or </span><span class="se">\&#39;</span><span class="s1">madanalysis</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">package_path</span> <span class="o">+</span> <span class="n">configfile</span>
+    <span class="n">modify_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">specify_delphes_path</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="install_SigCalc"><a class="viewcode-back" href="../setup.html#setup.install_SigCalc">[docs]</a><span class="k">def</span> <span class="nf">install_SigCalc</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;SigCalc&#39;</span><span class="p">):</span> 
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;SigCalc&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s1">&#39;SigCalc&#39;</span><span class="p">):</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s1">&#39;http://hacol13.physik.uni-freiburg.de/graduiertenkolleg/lectures/Cowan/sigcalc/SigCalc.tar&#39;</span><span class="p">])</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;-xvzf&#39;</span><span class="p">,</span> <span class="s1">&#39;SigCalc.tar&#39;</span><span class="p">])</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;-j&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="install_external_packages"><a class="viewcode-back" href="../setup.html#setup.install_external_packages">[docs]</a><span class="k">def</span> <span class="nf">install_external_packages</span><span class="p">(</span><span class="n">install_directory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Installs Delphes, MadGraph5 and MadAnalysis5 to the specified directory.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    install_directory : string</span>
+<span class="sd">        Name of the directory to install the packages to. If it does not exist</span>
+<span class="sd">        already, it will be created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">install_directory</span><span class="p">):</span> 
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">install_directory</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="n">install_directory</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Installing Delphes ...&#39;</span><span class="p">)</span>
+        <span class="n">install_delphes</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Installing MadGraph5 ...&#39;</span><span class="p">)</span>
+        <span class="n">install_madgraph</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Linking MadGraph5 with Delphes ... &#39;</span><span class="p">)</span>
+        <span class="n">link_package_with_delphes</span><span class="p">(</span><span class="s1">&#39;madgraph&#39;</span><span class="p">,</span> <span class="s1">&#39;mg5/&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Copying 2HDM_HEFT to Tools/mg5 ...&#39;</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="s1">&#39;../2HDM_HEFT&#39;</span><span class="p">,</span> <span class="s1">&#39;mg5/models/2HDM_HEFT&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Downloading MadAnalysis5 ...&#39;</span><span class="p">)</span>
+        <span class="n">download_madanalysis</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Linking MadAnalysis5 with Delphes ... &#39;</span><span class="p">)</span>
+        <span class="n">link_package_with_delphes</span><span class="p">(</span><span class="s1">&#39;madanalysis&#39;</span><span class="p">,</span> <span class="s1">&#39;madanalysis5/&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting up MadAnalysis5 for the first time to compile&#39;</span>
+                        <span class="o">+</span> <span class="s1">&#39; SampleAnalyzer libraries...&#39;</span><span class="p">)</span>
+        <span class="n">sp</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;./madanalysis5/bin/ma5&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Installing SigCalc ... &#39;</span><span class="p">)</span>
+        <span class="n">install_SigCalc</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="setup_directory_structure"><a class="viewcode-back" href="../setup.html#setup.setup_directory_structure">[docs]</a><span class="k">def</span> <span class="nf">setup_directory_structure</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Set up a directory structure for future event generation. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;Events/Signals&#39;</span><span class="p">):</span> 
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;Events/Signals&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;Events/Backgrounds&#39;</span><span class="p">):</span> 
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;Events/Backgrounds&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../setup.html#setup.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; The main function. &quot;&quot;&quot;</span>
+    <span class="n">setup_directory_structure</span><span class="p">()</span>
+    <span class="n">install_external_packages</span><span class="p">(</span><span class="s1">&#39;Tools&#39;</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ExoticHiggs</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=adarshp&repo=ExoticHiggs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../event_generation.html">Event Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cluster_issues.html">Cluster Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ExoticHiggs.html">API documentation</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Adarsh Pyarelal.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/adarshp/ExoticHiggs" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

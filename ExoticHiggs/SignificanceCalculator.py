@@ -3,33 +3,7 @@ import os
 import contextlib
 import subprocess as sp
 import numpy as np
-
-def change_directory(destination_directory):
-    """ Temporarily changes the working directory. This is used with the 
-    context manager, `cd`, given below:
-
-    Example
-    --------
-    Here is an example of how one might use the function:
-
-        with cd('relative/path/to/directory'):
-            print(os.getcwd()) # Prints the working directory
-            subprocess.call('./run_external_program') # Runs some non-python program
-
-    Parameters
-    ----------
-    destination_directory : string
-        The directory to temporarily change the working directory to. 
-
-    """
-    cwd = os.getcwd()
-    os.chdir(destination_directory)
-    try: yield
-    except: pass
-    finally: os.chdir(cwd)
-
-cd = contextlib.contextmanager(change_directory)
-
+from helpers import *
 
 class SignificanceCalculator:
     """ Class to calculate significance for a simple counting experiment.
@@ -39,30 +13,29 @@ class SignificanceCalculator:
     If, after cuts, we have the following events left over (for a given 
     luminosity) :
 
-    Signal : 10 events
-    Background 1 : 20 events ; tau_1 = 0.5
-    Background 2 : 13 events ; tau_2 = 1.5
-    Background 3 : 15 events ; tau_3 = 8
+    - Signal : 10 events
+    - Background 1 : 20 events ; tau_1 = 0.5
+    - Background 2 : 13 events ; tau_2 = 1.5
+    - Background 3 : 15 events ; tau_3 = 8
 
     Associated with each background is a factor 'tau', which parameterizes the
     uncertainty from the number of Monte Carlo events generated. For example,
     if we have the following:
 
-    :math:`n_{M}C` = Number of Monte Carlo events generated for a background.
-    :math:`\sigma_b = Cross-section for the background (output by the generator).
-    :math:`\mathcal{L} = Luminosity for which we would like to calculate the significance.
+    - :math:`n_{M}C` = Number of Monte Carlo events generated for a background.
+    - :math:`\sigma_b` = Cross-section for the background (output by the generator).
+    - :math:`\mathcal{L}` = Luminosity for which we would like to calculate the significance.
 
     the factor tau for this background would be:
 
-    ..math:
-    \tau = n_mC/(sigma_b * L)
+    .. math::
+        \\tau = n_{MC}/(\sigma_b * \mathcal{L})
 
     Basically, the more Monte Carlo events you generate, that is, the greater
     the tau factor is, the more confident you can be that the number of 
     background events that you get after cuts will match what is seen at a detector.
 
-    Here is a minimal working program that implements the above.
-
+    Here is a minimal working program that implements the above::
     
         from SignificanceCalculator import SignificanceCalculator
 
@@ -71,7 +44,7 @@ class SignificanceCalculator:
         calc = SignificanceCalculator(s, b_tau_tuples)
         calc.print_report()
     
-    This should return the following:
+    This should return the following::
      
         $ The expected discovery significance is 0.612969
         $ The expected exclusion limit is 1.08637
@@ -97,8 +70,11 @@ class SignificanceCalculator:
     def write_SigCalc_inputFile(self, n_obs):
         """ Write an input file for SigCalc to process.
 
-        Args:
-            n_obs (int) : Number of events observed in the signal region.
+        Parameters
+        ----------
+        n_obs : int 
+            Number of events observed in the signal region.
+
         """
         with open('Tools/SigCalc/inputFile.txt', 'w') as f:
             f.write("# File for significance calculation with SigCalc\n")

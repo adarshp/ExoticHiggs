@@ -55,15 +55,30 @@ def modify_file(filepath, line_modification_function):
         lines = [line_modification_function(line) for line in f.readlines()]
     with open(filepath, 'w') as f: [f.write(line) for line in lines]
 
-def change_directory(destination_directory):
-    """ A context manager to handle temporary directory changes """
+def _change_directory(destination_directory):
     cwd = os.getcwd()
     os.chdir(destination_directory)
     try: yield
     except: pass
     finally: os.chdir(cwd)
 
-cd = contextlib.contextmanager(change_directory)
+cd = contextlib.contextmanager(_change_directory)
+""" A context manager to handle temporary directory changes.
+
+    Example
+    --------
+    Here is an example of how one might use the function::
+
+        with cd('relative/path/to/directory'):
+            print(os.getcwd()) # Prints the working directory
+            subprocess.call('./run_external_program') # Runs some non-python program
+
+    Parameters
+    ----------
+    destination_directory : string
+        The directory to temporarily change the working directory to. 
+
+    """
 
 def get_benchmark_points(filename):
     df = pd.read_csv(filename, delim_whitespace=True, dtype = 'str')

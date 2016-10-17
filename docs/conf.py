@@ -19,7 +19,9 @@ import shlex
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../ExoticHiggs'))
 
 # -- General configuration ------------------------------------------------
 
@@ -34,7 +36,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,7 +51,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index2'
+master_doc = 'index'
 
 # General information about the project.
 project = u'ExoticHiggs'
@@ -120,10 +122,10 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-  github_user: 'adarshp',
-  github_repo: 'ExoticHiggs',
-  github_button: True,
-  github_banner: True,
+  'github_user': 'adarshp',
+  'github_repo': 'ExoticHiggs',
+  'github_button': True,
+  'github_banner': True,
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

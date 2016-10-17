@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2HDM_HEFT package &mdash; ExoticHiggs 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ExoticHiggs 0.2 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hdm-heft-package">
+<h1>2HDM_HEFT package<a class="headerlink" href="#hdm-heft-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.coupling_orders">
+<span id="hdm-heft-coupling-orders-module"></span><h2>2HDM_HEFT.coupling_orders module<a class="headerlink" href="#module-2HDM_HEFT.coupling_orders" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.couplings">
+<span id="hdm-heft-couplings-module"></span><h2>2HDM_HEFT.couplings module<a class="headerlink" href="#module-2HDM_HEFT.couplings" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.function_library">
+<span id="hdm-heft-function-library-module"></span><h2>2HDM_HEFT.function_library module<a class="headerlink" href="#module-2HDM_HEFT.function_library" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.lorentz">
+<span id="hdm-heft-lorentz-module"></span><h2>2HDM_HEFT.lorentz module<a class="headerlink" href="#module-2HDM_HEFT.lorentz" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.object_library">
+<span id="hdm-heft-object-library-module"></span><h2>2HDM_HEFT.object_library module<a class="headerlink" href="#module-2HDM_HEFT.object_library" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Coupling">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Coupling</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>order</em>, <em>**opt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Coupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Coupling.require_args">
+<code class="descname">require_args</code><em class="property"> = ['name', 'value', 'order']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Coupling.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.CouplingOrder">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">CouplingOrder</code><span class="sig-paren">(</span><em>name</em>, <em>expansion_order</em>, <em>hierarchy</em>, <em>perturbative_expansion=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#CouplingOrder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.CouplingOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Decay">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Decay</code><span class="sig-paren">(</span><em>particle</em>, <em>partial_widths</em>, <em>**opt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Decay.require_args">
+<code class="descname">require_args</code><em class="property"> = ['particle', 'partial_widths']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Decay.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Function">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Function</code><span class="sig-paren">(</span><em>name</em>, <em>arguments</em>, <em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Lorentz">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Lorentz</code><span class="sig-paren">(</span><em>name</em>, <em>spins</em>, <em>structure='external'</em>, <em>**opt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Lorentz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Lorentz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Lorentz.require_args">
+<code class="descname">require_args</code><em class="property"> = ['name', 'spins', 'structure']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Lorentz.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Parameter">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>name</em>, <em>nature</em>, <em>type</em>, <em>value</em>, <em>texname</em>, <em>lhablock=None</em>, <em>lhacode=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Parameter.require_args">
+<code class="descname">require_args</code><em class="property"> = ['name', 'nature', 'type', 'value', 'texname']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Parameter.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Particle">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Particle</code><span class="sig-paren">(</span><em>pdg_code</em>, <em>name</em>, <em>antiname</em>, <em>spin</em>, <em>color</em>, <em>mass</em>, <em>width</em>, <em>texname</em>, <em>antitexname</em>, <em>charge</em>, <em>line=None</em>, <em>propagating=True</em>, <em>goldstoneboson=False</em>, <em>**options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Particle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Particle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<p>A standard Particle</p>
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.Particle.anti">
+<code class="descname">anti</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Particle.anti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Particle.anti" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.Particle.find_line_type">
+<code class="descname">find_line_type</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Particle.find_line_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Particle.find_line_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>find how we draw a line if not defined
+valid output: dashed/straight/wavy/curly/double/swavy/scurly</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Particle.require_args">
+<code class="descname">require_args</code><em class="property"> = ['pdg_code', 'name', 'antiname', 'spin', 'color', 'mass', 'width', 'texname', 'antitexname', 'charge']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Particle.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Particle.require_args_all">
+<code class="descname">require_args_all</code><em class="property"> = ['pdg_code', 'name', 'antiname', 'spin', 'color', 'mass', 'width', 'texname', 'antitexname', 'charge', 'line', 'propagating', 'goldstoneboson']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Particle.require_args_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">UFOBaseClass</code><span class="sig-paren">(</span><em>*args</em>, <em>**options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#UFOBaseClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The class from which all FeynRules classes are derived.</p>
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#UFOBaseClass.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass.get_all">
+<code class="descname">get_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#UFOBaseClass.get_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass.get_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary containing all the information of the object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass.nice_string">
+<code class="descname">nice_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#UFOBaseClass.nice_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass.nice_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>return string with the full information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass.require_args">
+<code class="descname">require_args</code><em class="property"> = []</em><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.object_library.UFOBaseClass.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#UFOBaseClass.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.UFOBaseClass.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="2HDM_HEFT.object_library.Vertex">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.object_library.</code><code class="descname">Vertex</code><span class="sig-paren">(</span><em>name</em>, <em>particles</em>, <em>color</em>, <em>lorentz</em>, <em>couplings</em>, <em>**opt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/object_library.html#Vertex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.object_library.Vertex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#2HDM_HEFT.object_library.UFOBaseClass" title="2HDM_HEFT.object_library.UFOBaseClass"><code class="xref py py-class docutils literal"><span class="pre">2HDM_HEFT.object_library.UFOBaseClass</span></code></a></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.object_library.Vertex.require_args">
+<code class="descname">require_args</code><em class="property"> = ['name', 'particles', 'color', 'lorentz', 'couplings']</em><a class="headerlink" href="#2HDM_HEFT.object_library.Vertex.require_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-2HDM_HEFT.parameters">
+<span id="hdm-heft-parameters-module"></span><h2>2HDM_HEFT.parameters module<a class="headerlink" href="#module-2HDM_HEFT.parameters" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.particles">
+<span id="hdm-heft-particles-module"></span><h2>2HDM_HEFT.particles module<a class="headerlink" href="#module-2HDM_HEFT.particles" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.vertices">
+<span id="hdm-heft-vertices-module"></span><h2>2HDM_HEFT.vertices module<a class="headerlink" href="#module-2HDM_HEFT.vertices" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-2HDM_HEFT.write_param_card">
+<span id="hdm-heft-write-param-card-module"></span><h2>2HDM_HEFT.write_param_card module<a class="headerlink" href="#module-2HDM_HEFT.write_param_card" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter">
+<em class="property">class </em><code class="descclassname">2HDM_HEFT.write_param_card.</code><code class="descname">ParamCardWriter</code><span class="sig-paren">(</span><em>filename</em>, <em>list_of_parameters=None</em>, <em>generic=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.data">
+<code class="descname">data</code><em class="property"> = 'Block QNUMBERS %(pdg)d  # %(name)s \n        1 %(charge)d  # 3 times electric charge\n        2 %(spin)d  # number of spin states (2S+1)\n        3 %(color)d  # colour rep (1: singlet, 3: triplet, 8: octet)\n        4 %(antipart)d  # Particle/Antiparticle distinction (0=own anti)\n'</em><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.define_not_dep_param">
+<code class="descname">define_not_dep_param</code><span class="sig-paren">(</span><em>list_of_parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.define_not_dep_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.define_not_dep_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>define self.dep_mass and self.dep_width in case that they are 
+requested in the param_card.dat</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.header">
+<code class="descname">header</code><em class="property"> = '######################################################################\n## PARAM_CARD AUTOMATICALY GENERATED BY THE UFO  #####################\n######################################################################\n'</em><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.order_param">
+<em class="property">static </em><code class="descname">order_param</code><span class="sig-paren">(</span><em>obj1</em>, <em>obj2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.order_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.order_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>order parameter of a given block</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.sm_pdg">
+<code class="descname">sm_pdg</code><em class="property"> = [1, 2, 3, 4, 5, 6, 11, 12, 13, 13, 14, 15, 16, 21, 22, 23, 24, 25]</em><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.sm_pdg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.write_block">
+<code class="descname">write_block</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.write_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.write_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>write a comment for a block</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.write_card">
+<code class="descname">write_card</code><span class="sig-paren">(</span><em>all_ext_param</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.write_card"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.write_card" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.write_dep_param_block">
+<code class="descname">write_dep_param_block</code><span class="sig-paren">(</span><em>lhablock</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.write_dep_param_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.write_dep_param_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.write_param">
+<code class="descname">write_param</code><span class="sig-paren">(</span><em>param</em>, <em>lhablock</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.write_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.write_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="2HDM_HEFT.write_param_card.ParamCardWriter.write_qnumber">
+<code class="descname">write_qnumber</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/2HDM_HEFT/write_param_card.html#ParamCardWriter.write_qnumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#2HDM_HEFT.write_param_card.ParamCardWriter.write_qnumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>write qnumber</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-2HDM_HEFT">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-2HDM_HEFT" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">ExoticHiggs</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=adarshp&repo=ExoticHiggs&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="event_generation.html">Event Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster_issues.html">Cluster Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Adarsh Pyarelal.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/2HDM_HEFT.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/adarshp/ExoticHiggs" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
