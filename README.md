@@ -22,12 +22,14 @@ Installation
   cd ExoticHiggs
   make
 ```
-3. For installation on the cluster, please refer to the 
+
+For installation on the cluster, please refer to the 
 [documentation](http://exotichiggs.readthedocs.io).
 
-**Notes:**
+Notes
+-----
 
-#. The script :mod:`setup` does not install the latest version of MadGraph5, 
-   instead, it installs v2.2.3. The reason is that the newer versions have a
-   problem with high widths of the `A`. When prompted to update to the newest
-   version of MadGraph, select 'no'.
+The script `setup.py` does not install the latest version of MadGraph5, 
+instead, it installs v2.2.3. The reason is that the newer versions have a
+problem with high widths of the `A`. When prompted to update to the newest
+version of MadGraph, select 'no'.
