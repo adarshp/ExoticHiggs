@@ -143,26 +143,18 @@ def install_external_packages(install_directory):
         link_package_with_delphes('madgraph', 'mg5/')
         logging.info('Copying 2HDM_HEFT to Tools/mg5 ...')
         shutil.copytree('../2HDM_HEFT', 'mg5/models/2HDM_HEFT')
-        logging.info('Downloading MadAnalysis5 ...')
-        download_madanalysis()
-        logging.info('Linking MadAnalysis5 with Delphes ... ')
-        link_package_with_delphes('madanalysis', 'madanalysis5/')
-        logging.info('Starting up MadAnalysis5 for the first time to compile'
-                        + ' SampleAnalyzer libraries...')
-        sp.call('./madanalysis5/bin/ma5')
+        # logging.info('Downloading MadAnalysis5 ...')
+        #download_madanalysis()
+        #logging.info('Linking MadAnalysis5 with Delphes ... ')
+        #link_package_with_delphes('madanalysis', 'madanalysis5/')
+        #logging.info('Starting up MadAnalysis5 for the first time to compile'
+        #                + ' SampleAnalyzer libraries...')
+        #sp.call('./madanalysis5/bin/ma5')
         logging.info('Installing SigCalc ... ')
         install_SigCalc()
 
-def setup_directory_structure():
-    """ Set up a directory structure for future event generation. """
-    if not os.path.exists('Events/Signals'): 
-        os.makedirs('Events/Signals')
-    if not os.path.exists('Events/Backgrounds'): 
-        os.makedirs('Events/Backgrounds')
-
 def main():
     """ The main function. """
-    setup_directory_structure()
     install_external_packages('Tools')
 
 if __name__ == '__main__':
