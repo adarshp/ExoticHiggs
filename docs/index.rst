@@ -21,7 +21,6 @@ proton-proton collider for exotic Higgses in the Two-Higgs Doublet Model.
 **Indices**
 
 * :ref:`genindex`
-* :ref:`classes`
 * :ref:`modindex`
 * :ref:`search`
 

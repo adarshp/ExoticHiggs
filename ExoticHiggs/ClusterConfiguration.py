@@ -1,4 +1,17 @@
 class ClusterConfiguration(object):
+    """A template for creating a cluster configuration.
+
+    Attributes
+    ----------
+    username : str
+        Your username. For University of Arizona users, this is your NetID.
+    email : str
+        Your email, used to send notifications when a cluster job begins and
+        ends.
+    group_list : str
+        The group you belong to. For UA users, this should be the name of
+        your PI in lowercase.
+    """
     def __init__(self, username, email, group_list, pbs_script_template):
         self.username = username
         self.email = email
@@ -31,3 +44,5 @@ done
 echo "DONE"
 exit 0"""
 )
+""" This is the actual configuration for the cluster, that you must
+modify before using the package to generate events on the cluster."""

@@ -1,7 +1,12 @@
-import ExoticHiggs
 from ExoticHiggs.Process import Process
 from ExoticHiggs.SignalProcess import TwoHiggsDoubletModelProcess
-from myBenchmarkPlanes import BP_IA
+from ExoticHiggs.helpers import get_benchmark_points
+
+# Get benchmark points from a text file
+BP_IA = get_benchmark_points('benchmark_planes/BP_IA.txt')
+
+# Define a collection of signal processes corresponding to the
+# Benchmark point
 
 A_HZ_bbll_14_TeV_collection = [TwoHiggsDoubletModelProcess(
         name = 'A_HZ',
@@ -12,6 +17,7 @@ A_HZ_bbll_14_TeV_collection = [TwoHiggsDoubletModelProcess(
         benchmark_point = bp,
     ) for bp in BP_IA]
 
+# Define a collection of background processes
 tt_bbll_14_TeV_collection = [Process(
         name = 'tt',
         model = 'sm',

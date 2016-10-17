@@ -64,3 +64,8 @@ def change_directory(destination_directory):
     finally: os.chdir(cwd)
 
 cd = contextlib.contextmanager(change_directory)
+
+def get_benchmark_points(filename):
+    df = pd.read_csv(filename, delim_whitespace=True, dtype = 'str')
+    return list(df.itertuples(index=False))
+

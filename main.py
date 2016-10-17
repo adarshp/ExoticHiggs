@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import ExoticHiggs
 import myProcesses
 from tqdm import tqdm
 
@@ -12,4 +11,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

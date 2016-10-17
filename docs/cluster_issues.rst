@@ -51,6 +51,9 @@ namely ``/extra/username``, which has 200 GB of storage. Once you are in that
 directory, follow the instructions on the :doc:`home page </index>` to set up
 the project environment.
 
+6. You need to set your cluster configuration in the file ``ExoticHiggs/ClusterConfiguration.py``.
+You can see :mod:`ClusterConfiguration` for a description of the various parameters.
+
 .. _anaconda : https://www.continuum.io/downloads
 .. _DigitalOcean : https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2
 .. _here: http://rc.arizona.edu/hpc-htc/requesting-and-sponsoring-hpc-accounts-0#requestingu

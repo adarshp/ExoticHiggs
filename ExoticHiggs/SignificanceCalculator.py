@@ -48,13 +48,14 @@ class SignificanceCalculator:
     uncertainty from the number of Monte Carlo events generated. For example,
     if we have the following:
 
-    n_MC = Number of Monte Carlo events generated for a background.
-    sigma_b = Cross-section for the background (output by the generator).
-    L = Luminosity for which we would like to calculate the significance.
+    :math:`n_{M}C` = Number of Monte Carlo events generated for a background.
+    :math:`\sigma_b = Cross-section for the background (output by the generator).
+    :math:`\mathcal{L} = Luminosity for which we would like to calculate the significance.
 
     the factor tau for this background would be:
 
-    tau = n_mC/(sigma_b * L)
+    ..math:
+    \tau = n_mC/(sigma_b * L)
 
     Basically, the more Monte Carlo events you generate, that is, the greater
     the tau factor is, the more confident you can be that the number of 
