@@ -69,6 +69,15 @@ class Process(object):
             modify_file('Cards/run_card.dat',set_beam_energy) 
             modify_file('Cards/run_card.dat', lambda x: re.sub(r'\d* = nev', str(nevents)+" = nev", x))
 
+    def generate_events_locally(self, nruns = 1, nevents = 10000):
+        self.setup_for_generation(nruns, nevents)
+        with cd(self.directory):
+            for run in range(0, nruns):
+                sp.call(['./bin/generate_events','--laststep=delphes', '-f'])
+                sp.call(['./bin/madevent','remove','all', 'parton', '-f'])
+                sp.call(['./bin/madevent','remove','all', 'pythia', '-f'])
+                sp.call('rm -rf Events/run_*/tag_*_delphes_events.root', shell = True)
+
     def generate_events(self, nruns = 1, nevents = 10000):
         self.setup_for_generation(nruns, nevents)
         with cd(self.directory):
