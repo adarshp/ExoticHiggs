@@ -9,7 +9,7 @@ Installation
 
     git clone https://github.com/adarshp/ExoticHiggs
     cd ExoticHiggs
-    make
+    ./setup.sh
 
 If you are installing on the cluster, there are a few :doc:`extra steps </cluster_issues>` 
 you need to do before and after doing the above.
