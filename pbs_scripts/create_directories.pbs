@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -m ea
+#PBS -M adarsh@email.arizona.edu
+#PBS -W group_list=shufang
+#PBS -N create_dirs
+#PBS -q windfall
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
+#PBS -l cput=28:0:0
+#PBS -l walltime=1:0:0
+date
+cd /xdisk/adarsh/ExoticHiggs/
+./event_generation.py --create_dirs
+date
+exit 0
