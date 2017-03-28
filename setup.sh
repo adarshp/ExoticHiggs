@@ -1,25 +1,34 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-# Install python packages
-pip install -r requirements.txt
+# Defining colours for shell
+GREEN="\\033[1;32m"
+RED="\\033[1;31m"
+PINK="\\033[1;35m"
+BLUE="\\033[1;34m"
+YELLOW="\\033[1;33m"
+CYAN="\\033[1;36m"
+NORMAL="\\033[0;39m"
 
-# Make a Tools directory
-mkdir Tools
-cd Tools
+# Configuring MA5 environment variable
+export MA5_BASE=/12kx/gsfs1/extra/adarsh/Tools/madanalysis5
 
-# Install MadGraph5 v2.2.3
-wget https://launchpad.net/mg5amcnlo/2.0/2.2.x/+download/MG5_aMC_v2.2.3.tar.gz
-tar -zxvf MG5_aMC_v2.2.3.tar.gz
-rm MG5_aMC_v2.2.3.tar.gz; mv MG5_aMC_v2_4_3 mg5; cd mg5
-echo install pythia-pgs > install_pythia_delphes.cmd
-echo install Delphes  >> install_pythia_delphes.cmd
-./bin/mg5_aMC install_pythia_delphes.cmd; cd ../
+# Configuring PATH environment variable
+if [ $PATH ]; then
+export PATH=$MA5_BASE/tools/SampleAnalyzer/ExternalSymLink/Bin:/12kx/gsfs1/uaopt2012/root/bin:$PATH
+else
+export PATH=$MA5_BASE/tools/SampleAnalyzer/ExternalSymLink/Bin:/12kx/gsfs1/uaopt2012/root/bin
+fi
 
-# Install MadAnalysis5
-wget https://launchpad.net/madanalysis5/trunk/v1.4/+download/MadAnalysis5_v1.4.tar.gz
-tar -zxvf MadAnalysis5_v1.4.tar.gz; rm MadAnalysis5_v1.4.tar.gz; cd madanalysis5
-sed -i 's/tmp ==2/tmp == 3/g' 'madanalysis5/tools/SampleAnalyzer/Process/Reader/LHCOReader.cpp'
-echo "install delphes" > install_delphes.cmd
-./bin/ma5 --script install_delphes.cmd
-echo "exit" > compile_libs.cmd
-./bin/ma5 --script compile_libs.cmd
+# Configuring LD_LIBRARY_PATH environment variable
+if [ $LD_LIBRARY_PATH ]; then
+export LD_LIBRARY_PATH=$MA5_BASE/tools/SampleAnalyzer/Lib:$MA5_BASE/tools/SampleAnalyzer/ExternalSymLink/Lib:/12kx/gsfs1/uaopt2012/root/lib:$LD_LIBRARY_PATH
+else
+export LD_LIBRARY_PATH=$MA5_BASE/tools/SampleAnalyzer/Lib:$MA5_BASE/tools/SampleAnalyzer/ExternalSymLink/Lib:/12kx/gsfs1/uaopt2012/root/lib
+fi
+
+# Checking that all environment variables are defined
+if [[ $MA5_BASE && $PATH && $LD_LIBRARY_PATH ]]; then
+echo -e $YELLOW"--------------------------------------------------------"
+echo -e "    Your environment is properly configured for MA5     "
+echo -e "--------------------------------------------------------"$NORMAL
+fi
