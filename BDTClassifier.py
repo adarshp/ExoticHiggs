@@ -6,25 +6,24 @@ import numpy as np
 from sklearn.externals import joblib
 
 class BDTClassifier(object):
-    def __init__(self, signal):
+    def __init__(self, signal, verbosity = 0):
         self.signal = signal
         self.train_sets = {}
         self.test_sets = {}
         self.features = [
-            'mll',
-            'mbb',
-            'mR',
-            'mTR',
-            'MET',
-            # 'mllbb',
-            'THT',
             'ptl1',
             'ptl2',
             'ptb1',
-            'ptb2',
+            'ptj1',
+            'ptj2',
+            'MET',
+            'mH',
+            'mC',
+            'mt',
+            'THT',
             ]
 
-        bgs = ['tt', 'tbW', 'bbWW']
+        bgs = ['tt_bbllvv', 'tt_semileptonic']
             
         self.get_signal_train_test_data()
         [self.get_bg_train_test_data(bg) for bg in bgs]
@@ -44,9 +43,9 @@ class BDTClassifier(object):
         self.y_test = np.concatenate(tuple(y_test_signal+y_test_bgs))
 
         clf = GradientBoostingClassifier(
-                                n_estimators = 1000,
+                                n_estimators = 300,
                                 learning_rate = 0.025,
-                                verbose = 0,
+                                verbose = verbosity,
                                 )
         clf.fit(self.X_train, self.y_train)
         self.clf = clf
@@ -63,4 +62,4 @@ class BDTClassifier(object):
                          usecols = self.features)
         # df = pd.read_csv('BackgroundFeatureArrays/Output/{}/feature_array.txt'.format(bg_name),
                          # usecols = self.features)
-        self.train_sets[bg_name], self.test_sets[bg_name] = train_test_split(df,train_size = 0.3)
+        self.train_sets[bg_name], self.test_sets[bg_name] = train_test_split(df,train_size = 0.7)

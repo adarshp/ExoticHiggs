@@ -14,31 +14,67 @@ import shutil as sh
 import subprocess as sp
 import glob
 import gzip
+import untangle
 from BDTClassifier import BDTClassifier
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-figwidth = 3.06
-plt.rcParams['figure.figsize'] = (figwidth,figwidth)
 import itertools as it
 import untangle
 
-# Procedure
-# - Create directories
-# - Modify param_card
-# - Copy delphes and run cards
-# - Write submit scripts
-# - Submit jobs to cluster
+pgf_with_rc_fonts = {
+    "font.family": "serif",
+}
+
+matplotlib.rcParams.update(pgf_with_rc_fonts)
+def figsize(scale):
+    fig_width_pt = 281.0
+    inches_per_pt = 1.0/72.27
+    golden_mean = (np.sqrt(5.0)-1.0)/2.0
+    fig_width = fig_width_pt*inches_per_pt*scale
+    fig_height = fig_width*golden_mean
+    fig_size = [fig_width, fig_width]
+    return fig_size
+
+plt.figure(figsize=figsize(1.0))
+plt.rc('font',size=10)
+plt.rc('xtick',labelsize=10)
+plt.rc('ytick',labelsize=10)
+plt.rc('axes',labelsize=10)
+
+# figwidth = 3.06
+# plt.rcParams['figure.figsize'] = (figwidth,figwidth)
+
+def make_histo(process_name, histo_name):
+    """ Make histogram using matplotlib"""
+    with cd('MakeFeatureArrays/Output/'+process_name+'/Analysis_0/Histograms/'):
+        convert_SAF_to_XML('histos.saf')
+        objects = (untangle.parse('histos.xml')).root
+        histos = objects.Histo
+        myHisto = filter(lambda x: x.Description.cdata.split('\n')[1].strip('\"') == histo_name, histos)[0]
+        # print(myHisto.Statistics.cdata.split('\n')[1].split()[0])
+        nevents = int(myHisto.Statistics.cdata.split('\n')[1].split()[0])
+        nbins = int(myHisto.Description.cdata.split('\n')[3].split()[0])
+        xmin = float(myHisto.Description.cdata.split('\n')[3].split()[1])
+        xmax = float(myHisto.Description.cdata.split('\n')[3].split()[2])
+        bin_contents = [int(x.split()[0])/nevents for x in myHisto.Data.cdata.split('\n')[2:-2]]
+        index = [x*(xmax-xmin)/nbins for x in range(1, nbins+1)]
+        plt.style.use('ggplot')
+        plt.title(histo_name)
+        plt.xlabel('GeV')
+        plt.bar(index, bin_contents, width = (xmax - xmin)/nbins, alpha = 0.4)
+        plt.xlim(xmin, xmax)
+        plt.tight_layout()
 
 def set_axis_labels():
     # plt.xlim(525,2000)
     # plt.ylim(0,1500)
     # plt.text(600, 1300, r"$\mathcal{L} = 3000$ $\mathrm{fb}^{-1}$", fontsize = 20)
     # plt.text(700, 870, r"$M_1 = |\mu|$", fontsize = 11, rotation = 32)
-    plt.ylabel(r'$m_{H}$', fontsize = 11)
-    plt.xlabel(r'$m_{H}^\pm = m_A$', fontsize = 11)
+    plt.ylabel(r'$m_{H}$ (GeV)', fontsize = 10)
+    plt.xlabel(r'$m_{H^\pm} = m_A$ (GeV)', fontsize = 10)
     axes = plt.axes()
     # axes.xaxis.set_label_coords(0.5, -0.1)
     # axes.yaxis.set_label_coords(-0.08, 0.5)
@@ -104,12 +140,12 @@ def write_pbs_scripts(processes, parser, nruns):
         with open(parser.get('PBS Templates', 'generate_script'), 'r') as f:
             string = f.read()
         with open(process.directory+'/generate_events.pbs', 'w') as f:
-            f.write(string.format(jobname =process.index,
+            f.write(string.format(jobname =str(int(float(process.bp['mH'])))+'_'+str(int(float(process.bp['mC']))),
             username = parser.get('Cluster', 'username'),
             email = parser.get('Cluster', 'email'),
             group_list = parser.get('Cluster', 'group_list'),
             nruns = str(nruns),cwd = os.getcwd(),
-            cput = str(5*nruns),walltime = str(1*nruns), # in hrs
+            cput = str(28*nruns),walltime = str(2*nruns), # in hrs
             mg5_process_dir = process.directory))
 
 def rename_folder(signal):
@@ -144,7 +180,7 @@ def make_bg_feature_array(bg_name,bg_decay_channel):
         sp.call(['./analyze_bgs.sh',bg_name,bg_decay_channel])
 
 def data_cleaning(proc_name):
-    header = 'ptl1,ptl2,ptb1,ptj1,ptj2,MET,THT\n'
+    header = 'ptl1,ptl2,ptb1,ptj1,ptj2,MET,mH,mt,mC,THT\n'
     with open('MakeFeatureArrays/Output/'+proc_name+'/feature_array.txt','r+') as f:
         lines = f.readlines()
         if not lines[0].startswith('p'):
@@ -243,7 +279,7 @@ def collect_bdt_responses(BDTClassifier):
             f.write('\n'.join(map(lambda x: str(x), responses)))
 
 def make_bdt_histo():
-    matplotlib.style.use('ggplot')
+    matplotlib.style.use('fivethirtyeight')
     responses = {}
     for process in processes:
         with open('intermediate_results/bdt_responses/'+process+'.txt', 'r') as f:
@@ -287,22 +323,23 @@ def make_combined_contour_plot():
     set_axis_labels()
     x = np.arange(0,2000, 0.1) 
     plt.plot(x,x,color = 'gray', linestyle = 'dashed')
-
+    plt.text(700, 1350, r"$m_{H^\pm} = m_A = m_H$", fontsize = 10, rotation = 46)
 
     # BDT contour labels
-    # fmt[bdt_CS.levels[0]] = r'$1.96\sigma$ $(BDT)$'
-    # fmt[bdt_CS.levels[1]] = r'$5\sigma$ $(BDT)$'
+    fmt[bdt_CS.levels[0]] = r'$1.96\sigma$'
+    fmt[bdt_CS.levels[1]] = r'$5\sigma$'
     # manual_locations = [(1200,800),(1500,1200)]
-    plt.clabel(bdt_CS, inline=1, fontsize=11)
+    plt.clabel(bdt_CS, inline=1, fontsize=10,fmt = fmt)
 
     # set_axis_labels()
-    plt.locator_params(axis='x',nbins=6)
-    plt.locator_params(axis='y',nbins=6)
+    # plt.locator_params(axis='x',nbins=6)
+    # plt.locator_params(axis='y',nbins=6)
     # plt.text(600, 1200, r"${}\sigma$".format(levels[0]), fontsize = 30)
 
     plt.tight_layout()
     filename = 'combined'
     plt.savefig('images/{}.pdf'.format(filename),dpi = 300)
+    plt.savefig('images/{}.pgf'.format(filename))
 
 def write_nevents_to_file(signal):
     """ Scan over a range of bdt cuts and write the results to a file. """
@@ -372,6 +409,9 @@ def main():
             help="Make background feature arrays and perform data cleaning")
     argparser.add_argument("--rename",action="store_true",
             help="Rename signal folders")
+    argparser.add_argument("--histo_name", default = "w_hadronic", help = "Specify the name of the histogram")
+    argparser.add_argument("--make_test_histo",action="store_true",
+            help="Make a histogram of a kinematic variable")
     args = argparser.parse_args()
 
     processes = {
@@ -385,16 +425,16 @@ def main():
     if args.copy_cards: 
         copy_cards(processes["Hc_HW_tautau_ll_14_TeV"])
     if args.write_pbs_scripts: 
-        write_pbs_scripts(processes["Hc_HW_tautau_ll_14_TeV"], configparser, 10)
+        write_pbs_scripts(processes["Hc_HW_tautau_ll_14_TeV"], configparser, 1)
     if args.submit_jobs: 
         map(lambda x: x.generate_events(),
             tqdm(processes["Hc_HW_tautau_ll_14_TeV"], desc = "submitting PBS jobs"))
     if args.make_feature_arrays:
         make_signal_feature_arrays(processes["Hc_HW_tautau_ll_14_TeV"])
     if args.make_bg_feature_arrays:
-        make_bg_feature_array('tt','bbllvv')
+        # make_bg_feature_array('tt','bbllvv')
         data_cleaning('tt_bbllvv')
-        make_bg_feature_array('tt','semileptonic')
+        # make_bg_feature_array('tt','semileptonic')
         data_cleaning('tt_semileptonic')
     if args.clean_data: 
         map(data_cleaning,tqdm([signal.index for signal in processes['Hc_HW_tautau_ll_14_TeV']]))
@@ -411,6 +451,9 @@ def main():
         collect_max_bdt_sigs(processes['Hc_HW_tautau_ll_14_TeV'])
     if args.make_contour_plot:
         make_combined_contour_plot()
+    if args.make_test_histo:
+        make_histo('mH_1025_mC_1116',args.histo_name)
+        plt.savefig('images/'+args.histo_name+'.pdf')
 
     if args.bdt_histo: 
         myClassifier = BDTClassifier(processes['Hc_HW_tautau_ll_14_TeV'][0])

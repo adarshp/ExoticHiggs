@@ -9,6 +9,6 @@
 #PBS -l walltime=1:0:0
 date
 cd /xdisk/adarsh/ExoticHiggs/
-./event_generation.py --create_dirs
+./main --create_dirs
 date
 exit 0
