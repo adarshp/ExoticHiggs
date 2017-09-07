@@ -1,3 +1,0 @@
-import model 2HDM_HEFT
-        generate g g > h3 , ( h3 > h2 z , h2 > b b~ , z > l+ l- )
-        output Events/Signals/A_HZ/mH_200_mA_550_mC_550_tb_1_cba_0_m122_20000
