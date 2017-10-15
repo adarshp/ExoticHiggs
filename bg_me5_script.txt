@@ -1,0 +1,5 @@
+generate_events
+shower=PYTHIA8
+analysis=OFF
+delphes
+done
