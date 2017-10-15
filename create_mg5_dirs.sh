@@ -15,3 +15,5 @@ do
     cp $src/Cards/delphes_cards/delphes_card_with_top_tagging.tcl $process/Cards/delphes_card.dat
     cp $src/Cards/run_cards/run_card.dat $process/Cards/run_card.dat
 done
+
+cd $src
