@@ -7,15 +7,11 @@
 #include "TSystem.h"
 #include "TClonesArray.h"
 #include "TPaveText.h"
-#include "TProofServ.h"
 #include "THStack.h"
 #include "TString.h"
 #include "TTree.h"
-#include "TProofLite.h"
 #include "TH1F.h"
 #include "TTreeReader.h"
-#include "ROOT/TProcessExecutor.hxx"
-#include "ROOT/TTreeProcessorMP.hxx"
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
 #include "classes/DelphesClasses.h"
@@ -108,6 +104,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counte
         if (tau_jets.size() != 1) continue; 
         counter->counter[j]++; j++;
 
+        if (untagged_jets.size() < 2) continue; 
+        counter->counter[j]++; j++;
+
         for(int i = 0; i < branchElectron->GetEntriesFast(); i++) {
             leptons.push_back(make_candidate((Electron*) branchElectron->At(i)));
         }
@@ -125,9 +124,25 @@ void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counte
         if (leptons[0].Charge != tau_jets[0]->Charge) continue;
         counter->counter[j]++; j++;
 
+        Candidate W_hadronic;         
+        double delta = 1000.0;
+        double mW = 80.4;
+        for (int i=0; i < untagged_jets.size(); i++) {
+            for (int j=0; j < untagged_jets.size(); j++) {
+                if (i!=j and i<j) {
+                    Candidate candidate;
+                    candidate.Momentum = untagged_jets[i]->P4()
+                                        +untagged_jets[j]->P4(); 
+                    std::cout << i << '\t' << j << '\t' << "mass = " 
+                    << candidate.Momentum.M() << std::endl; 
+                    if ((candidate.Momentum.M() - mW ) < delta) 
+                        W_hadronic = candidate;
+                }
+            } 
+        }
     }
 
-    progressBar.Finish();
+    /* progressBar.Finish(); */
 }
 
 
@@ -163,12 +178,14 @@ int main(int argc, char **argv ) {
        "Initial",
        "1/2 b-jets",
        "1 tau jet",
+       "2+ untagged jets",
        "2 leptons",
        "OS Leptons",
        "OS tau jet"
     };
     std::ofstream f; f.open("cut_flow_table.txt");
-    f << "Cut Name" << '\t' << "Signal" << '\t' << "Background" << std::endl;
+    f << "Cut Name" << '\t' << "Signal MC Events" << '\t' 
+      << "Background MC Events" << std::endl;
     for (int i=0; i<6; i++) {
         f << cutNames[i] << '\t' << signal_counter->counter[i] << '\t' 
           << bg_counter->counter[i] << std::endl;
