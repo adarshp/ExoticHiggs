@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -N tt_full_taus
+#PBS -M adarsh@email.arizona.edu
+#PBS -W group_list=shufang
+#PBS -q standard
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
+#PBS -l cput=672:0:0
+#PBS -l walltime=24:0:0
+
+cd /xdisk/adarsh/tt_fully_leptonic_including_taus
+
+src='/home/u13/adarsh/ExoticHiggs'
+target_dir='/rsgrps/shufang/Events/tt_fully_leptonic_including_taus/'
+mg5_dir='/home/u13/adarsh/MG5_aMC_v2_6_0/'
+
+for i in {1..96}
+do
+  rm RunWeb
+  ./bin/madevent $src/bg_me5_script.txt
+  for entry in Events/run_*/tag_*_delphes_events.root
+  do
+    mv $entry $target_dir/sample_`ls $target_dir | wc -l`.root
+  done
+  rm -rf Events/*
+done
+echo "DONE"
+exit 0
