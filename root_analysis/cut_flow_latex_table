@@ -1,0 +1,13 @@
+\begin{tabular}{lrrrrr}
+\toprule
+         Cut Name &  $\sigma_{Signal}$ &  $\sigma_{tt-full}$ &  $\sigma_{tt-semi}$ &     S/B &  $S/\sqrt{B}$ \\
+\midrule
+          Initial &                 12 &           2,490,391 &           8,271,000 & 1.1e-06 &       6.1e-05 \\
+       1/2 b-jets &                8.6 &           1,848,368 &           5,877,042 & 1.1e-06 &       6.1e-05 \\
+        1 tau jet &                2.5 &             135,178 &             222,159 & 7.0e-06 &       3.8e-04 \\
+ 2+ untagged jets &                1.7 &              69,731 &             142,923 & 7.9e-06 &       4.3e-04 \\
+        2 leptons &               0.14 &               1,594 &                 496 & 6.8e-05 &         0.004 \\
+       OS Leptons &               0.07 &                 149 &                 496 & 1.2e-04 &         0.006 \\
+       OS tau jet &              0.002 &                 149 &                 496 & 2.6e-06 &       1.4e-04 \\
+\bottomrule
+\end{tabular}
