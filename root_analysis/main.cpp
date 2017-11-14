@@ -22,8 +22,6 @@
 #include "external/ExRootAnalysis/ExRootUtilities.h"
 #include <fstream>
 
-struct Counter{ int counter[7] = {0}; };
-
 struct MyPlots {
   TH1 *fMissingET;
   TH1 *fElectronPT;
@@ -61,7 +59,8 @@ Candidate make_candidate(T* delphes_particle) {
     return candidate;
 }
 
-void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counter) {
+void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots,
+                   std::vector<int>& counters) {
     TClonesArray *branchJet  = treeReader->UseBranch("Jet");
     TClonesArray *branchElectron  = treeReader->UseBranch("Electron");
     TClonesArray *branchMuon  = treeReader->UseBranch("Muon");
@@ -87,10 +86,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counte
         met = (MissingET*) branchMissingET->At(0);
         plots->fMissingET->Fill(met->MET);
 
-        std::vector<Jet*> jets;
-        std::vector<Jet*> untagged_jets;
-        std::vector<Jet*> b_jets;
-        std::vector<Jet*> tau_jets;
+        std::vector<Jet*> jets, untagged_jets, b_jets, tau_jets;
 
         std::vector<Electron*> electrons;
         std::vector<Candidate> leptons;
@@ -121,16 +117,16 @@ void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counte
         }
         plots->m_W_hadronic_candidate->Fill(W_hadronic.Momentum.M());
 
-        int j = 0; counter->counter[j]++; j++;
+        int j = 0; counters[j]++; j++;
 
         if (b_jets.size() != 1 and b_jets.size() != 2) continue; 
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
 
         if (tau_jets.size() != 1) continue; 
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
 
         if (untagged_jets.size() < 2) continue; 
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
 
         for(int i = 0; i < branchElectron->GetEntriesFast(); i++) {
             leptons.push_back(make_candidate((Electron*) branchElectron->At(i)));
@@ -141,74 +137,61 @@ void AnalyseEvents(ExRootTreeReader *treeReader, MyPlots *plots, Counter* counte
         }
 
         if (leptons.size() != 2) continue; 
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
 
         if (leptons[0].Charge != leptons[1].Charge) continue;
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
 
         if (leptons[0].Charge != tau_jets[0]->Charge) continue;
-        counter->counter[j]++; j++;
+        counters[j]++; j++;
         
         // Neutrino reconstruction
-        double a=0, b=0, c=0, delta=0, scale=1.0, mw=80.4;
-        double l1_pz = leptons[0]->Pz();
-        double l1_px = leptons[0]->Px();
-        double l1_py = leptons[0]->Py();
-        double l1_E = leptons[0]->E();
+        double a=0, b=0, c=0, d=0, scale=1.0, mw=80.4;
+        double l1_pz = leptons[0].Momentum.Pz();
+        double l1_px = leptons[0].Momentum.Px();
+        double l1_py = leptons[0].Momentum.Py();
+        double l1_E = leptons[0].Momentum.E();
         double MET = met->MET;
         double met_px = MET*cos(met->Phi);
         double met_py = MET*sin(met->Phi);
-        a=4*(l1_pz*l1_pz-l1_E*l1_E);
-        b=4*l1_pz*(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py());
-        c=(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py())*(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py())-4*l1_pz*l1_pz*scale*del_met[0].e()*scale*del_met[0].e();
+        a = 4*(pow(l1_pz,2)-pow(l1_E,2));
+        d = pow(mw,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
+        b = 4*l1_pz*d;
+        c = d*d-4*pow(scale*MET*l1_pz,2);
         delta=b*b-4*a*c;
         
         while(delta<0) {
             scale-=0.01;
-            a=4*(l1_pz*l1_pz-l1_E*l1_E);
-            b=4*l1_pz*(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py());
-            c=(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py())*(mw*mw+2*l1_px*scale*del_met[0].px()+2*l1_py*scale*del_met[0].py())-4*l1_pz*l1_pz*scale*del_met[0].e()*scale*del_met[0].e();
+            a=4*(pow(l1_pz,2)-pow(l1_E,2));
+            d=mw*mw+2*scale*(l1_px*met_px+l1_py*met_py);
+            b=4*l1_pz*d;
+            c=d*d-4*pow(scale*MET*l1_pz,2);
             delta=b*b-4*a*c;
         }
         
-        Double_t pz=(abs((-b+sqrt(delta))/(2*a))<abs((-b-sqrt(delta))/(2*a)))?(-b+sqrt(delta))/(2*a):(-b-sqrt(delta))/(2*a);
+        double sol1=(-b+sqrt(delta))/(2*a);
+        double sol2=(-b-sqrt(delta))/(2*a);
+        double pz = abs(sol1) < abs(sol2) ? sol1 : sol2;
         
-        fastjet::PseudoJet pseudojet_tmp(del_met[0].px(),del_met[0].py(),pz,sqrt(del_met[0].px()*del_met[0].px()+del_met[0].py()*del_met[0].py()+pz*pz));
-        
-        del_v1=pseudojet_tmp;
-
+        fastjet::PseudoJet reconstructed_neutrino(met_px,met_py,pz,
+             sqrt(met_px*met_px+met_py*met_py+pz*pz));
     }
+
     progressBar.Finish();
 }
 
 
-int run_analysis(const char* inputList, MyPlots* plots, Counter* counter) {
+int run_analysis(const char* inputList, MyPlots* plots, std::vector<int>& counters) {
     ExRootResult *result = new ExRootResult();
     BookHistograms(result, plots);
     TChain chain("Delphes");
     FillChain(&chain, inputList);
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, plots, counter);
+    AnalyseEvents(treeReader, plots, counters);
     return 0;
 }
 
 int main(int argc, char **argv ) {
-    MyPlots *signal_plots = new MyPlots;
-    Counter* signal_counter = new Counter();
-    Counter* bg_counter = new Counter();
-    MyPlots *bg_plots = new MyPlots;
-    run_analysis("signal_input_list.txt", signal_plots, signal_counter);
-    run_analysis("bg_input_list.txt", bg_plots, bg_counter);
-    ExRootResult *result = new ExRootResult();
-    THStack *stack;
-    stack = result->AddHistStack("whad", "Whad");
-
-    signal_plots->m_W_hadronic_candidate->SetLineColor(kBlue);
-    bg_plots->m_W_hadronic_candidate->SetLineColor(kRed);
-
-    stack->Add(signal_plots->m_W_hadronic_candidate);
-    stack->Add(bg_plots->m_W_hadronic_candidate);
-    result->Print("pdf");
 
     std::vector<std::string> cutNames = {
        "Initial",
@@ -219,13 +202,44 @@ int main(int argc, char **argv ) {
        "OS Leptons",
        "OS tau jet"
     };
+
+    std::vector<int> signal_counters, tt_full_counters, tt_semi_counters;
+    for (auto cut : cutNames) {
+        signal_counters.push_back(0);
+        tt_full_counters.push_back(0);
+        tt_semi_counters.push_back(0);
+    }
+
+    MyPlots *signal_plots = new MyPlots;
+    MyPlots *tt_semi_plots = new MyPlots;
+    MyPlots *tt_full_plots = new MyPlots;
+    run_analysis("signal_input_list.txt", signal_plots, signal_counters);
+    run_analysis("tt_full_input_list.txt", tt_full_plots, tt_full_counters);
+    run_analysis("tt_semi_input_list.txt", tt_semi_plots, tt_semi_counters);
+    ExRootResult *result = new ExRootResult();
+    THStack *stack;
+    stack = result->AddHistStack("whad", "Whad");
+
+    signal_plots->m_W_hadronic_candidate->SetLineColor(kBlue);
+    tt_full_plots->m_W_hadronic_candidate->SetLineColor(kRed);
+    tt_semi_plots->m_W_hadronic_candidate->SetLineColor(kGreen);
+
+    stack->Add(signal_plots->m_W_hadronic_candidate);
+    stack->Add(tt_full_plots->m_W_hadronic_candidate);
+    stack->Add(tt_semi_plots->m_W_hadronic_candidate);
+    result->Print("pdf");
+
     std::ofstream f; f.open("cut_flow_table.txt");
     f << "Cut Name" << '\t' << "Signal MC Events" << '\t' 
-      << "Background MC Events" << std::endl;
-    for (int i=0; i<7; i++) {
-        f << cutNames[i] << '\t' << signal_counter->counter[i] << '\t' 
-          << bg_counter->counter[i] << std::endl;
+      << "tt semi-leptonic MC Events" << '\t' 
+      << "tt fully-leptonic MC Events" << std::endl;
+
+    for (int i=0; i < cutNames.size(); i++) {
+        f << cutNames[i] << '\t' << signal_counters[i] << '\t' 
+          << tt_semi_counters[i] << '\t' 
+          << tt_full_counters[i] << std::endl;
     }
+
     f.close();
     return 0;
 }
