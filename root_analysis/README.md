@@ -1,3 +1,7 @@
+To compile the analysis code, type:
+
+`make`
+
 To generate lists of ROOT files to process, do:
 
 `source make_input_lists.sh`
