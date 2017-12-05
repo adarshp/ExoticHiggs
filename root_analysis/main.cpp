@@ -23,6 +23,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace tbb;
 
 template <class T>
 Candidate make_candidate(T* delphes_particle) {
@@ -33,7 +34,7 @@ Candidate make_candidate(T* delphes_particle) {
 }
 
 void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
-        map<string, ofstream*> PlotMap, ofstream* f_features) {
+        map<string, TH1F*> plots, ofstream* f_features) {
 
   TClonesArray *branchJet       = treeReader->UseBranch("Jet"),
                *branchElectron  = treeReader->UseBranch("Electron"),
@@ -46,6 +47,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
 
   ExRootProgressBar progressBar(totalEntries-1);
 
+
   // Loop over all events
   for(long i = 0; i < totalEntries; i++) {
     // Load selected branches with data from specified event
@@ -54,10 +56,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
 
     // Analyse missing ET
     met = (MissingET*) branchMissingET->At(0);
-    *PlotMap["MET"] << met->MET << endl;
+    plots["MET"]->Fill(met->MET);
 
     vector<Jet*> jets, untagged_jets, b_jets, tau_jets;
-
     vector<Electron*> electrons;
     vector<Candidate> leptons;
 
@@ -69,32 +70,6 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
       jets.push_back(jet);
     }
 
-    Candidate W_hadronic;         
-    double delta = 10000.0, mW = 80.4;
-
-    for (int i=0; i < untagged_jets.size(); i++) {
-      for (int j=0; j < untagged_jets.size(); j++) {
-        if (i!=j and i<j) {
-          Candidate candidate;
-          candidate.Momentum = untagged_jets[i]->P4() + untagged_jets[j]->P4(); 
-          if ((candidate.Momentum.M() - mW) < delta) 
-            delta = candidate.Momentum.M() - mW;
-            W_hadronic = candidate;
-        }
-      } 
-    }
-
-    *PlotMap["w_had"] << W_hadronic.Momentum.M() << endl;
-
-    int j = 0; counters[j]++; j++;
-
-    if (b_jets.size()!=1 and b_jets.size()!=2) continue; counters[j]++; j++;
-    *PlotMap["pt_b1"] << b_jets[0]->PT << endl;
-
-    if (tau_jets.size() != 1) continue; counters[j]++; j++;
-    *PlotMap["pt_tau"] << tau_jets[0]->PT << endl;
-
-    if (untagged_jets.size() < 2) continue; counters[j]++; j++;
 
     for(int i = 0; i < branchElectron->GetEntriesFast(); i++)
         leptons.push_back(make_candidate((Electron*)branchElectron->At(i)));
@@ -102,15 +77,44 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
     for(int i = 0; i < branchMuon->GetEntriesFast(); i++)
         leptons.push_back(make_candidate((Muon*) branchMuon->At(i)));
 
+    int j = 0; counters[j]++; j++;
+
     if (leptons.size() != 2) continue; counters[j]++; j++;
+    if (b_jets.size()!=1 and b_jets.size()!=2) continue; counters[j]++; j++;
+    plots["pt_b1"]->Fill(b_jets[0]->PT);
+
+    if (tau_jets.size() != 1) continue; counters[j]++; j++;
+    plots["pt_tau"]->Fill(tau_jets[0]->PT);
+
+
+    if (untagged_jets.size() < 2) continue; counters[j]++; j++;
+
     if (leptons[0].Charge!=leptons[1].Charge) continue; counters[j]++; j++;
-    *PlotMap["pt_l1"] << leptons[0].PT << endl;
-    if(leptons[0].Charge!=tau_jets[0]->Charge) continue; counters[j]++; j++;
-    *f_features  << leptons[0].PT << '\t' << tau_jets[0]->PT << '\t'
-                 << b_jets[0]->PT << '\t' << met->MET        << '\t' << endl;
-   
+    plots["pt_l1"]->Fill(leptons[0].PT);
+    if(leptons[0].Charge==tau_jets[0]->Charge) continue; counters[j]++; j++;
+
     // Neutrino reconstruction
-    double a   = 0, b = 0, c = 0, d = 0, scale = 1.0, mw = 80.4,
+    double delta = 10000.0, mW = 80.4;
+
+    Candidate W_hadronic;         
+
+    for (int i=0; i < untagged_jets.size(); i++) {
+      for (int j=0; j < untagged_jets.size(); j++) {
+        if (i!=j and i<j) {
+          Candidate candidate;
+          candidate.Momentum = untagged_jets[i]->P4() + untagged_jets[j]->P4(); 
+          if (fabs(candidate.Momentum.M() - mW) < delta){
+            delta = candidate.Momentum.M() - mW;
+            W_hadronic = candidate;
+          }
+        }
+      } 
+    }
+
+    plots["w_had"]->Fill(W_hadronic.Momentum.M());
+
+    double
+        a   = 0, b = 0, c = 0, d = 0, scale = 1.0,
         l1_pz  = leptons[0].Momentum.Pz(),
         l1_px  = leptons[0].Momentum.Px(),
         l1_py  = leptons[0].Momentum.Py(),
@@ -120,7 +124,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
         met_py = MET*sin(met->Phi);
 
       a = 4*(pow(l1_pz,2)-pow(l1_E,2));
-      d = pow(mw,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
+      d = pow(mW,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
       b = 4*l1_pz*d;
       c = d*d-4*pow(scale*MET*l1_pz,2);
       delta=b*b-4*a*c;
@@ -128,7 +132,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
       while(delta<0) {
           scale -= 0.01;
           a      = 4*(pow(l1_pz,2)-pow(l1_E,2));
-          d      = mw*mw+2*scale*(l1_px*met_px+l1_py*met_py);
+          d      = mW*mW+2*scale*(l1_px*met_px+l1_py*met_py);
           b      = 4*l1_pz*d;
           c      = d*d-4*pow(scale*MET*l1_pz,2);
           delta  = b*b-4*a*c;
@@ -140,55 +144,124 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
     
       fastjet::PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
-    
+
+    plots["w_lep"]->Fill(W_leptonic.m());
+
+    *f_features  
+
+        << leptons[0].Momentum.Pt()  << '\t'
+        << leptons[0].Momentum.Eta() << '\t'
+        << leptons[0].Momentum.Phi() << '\t'
+        << leptons[0].Momentum.E()   << '\t'
+
+        << leptons[1].Momentum.Pt()  << '\t'
+        << leptons[1].Momentum.Eta() << '\t'
+        << leptons[1].Momentum.Phi() << '\t'
+        << leptons[1].Momentum.E()   << '\t'
+
+        << tau_jets[0]->P4().Pt()    << '\t'
+        << tau_jets[0]->P4().Eta()   << '\t'
+        << tau_jets[0]->P4().Phi()   << '\t'
+        << tau_jets[0]->P4().E()     << '\t'
+
+        << b_jets[0]->P4().Pt()      << '\t'
+        << b_jets[0]->P4().Eta()     << '\t'
+        << b_jets[0]->P4().Phi()     << '\t'
+        << b_jets[0]->P4().E()       << '\t'
+
+        << W_hadronic.Momentum.M()   << '\t'
+        << W_leptonic.m()            << '\t'
+
+        << met->MET                  << endl;
     }
 
     progressBar.Finish();
 }
 
 void run_analysis(string process, vector<int>& counters,
-        map<string, ofstream*> PlotMap, ofstream* f_features) {
+        map<string, TH1F*> plots, ofstream* f_features) {
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, counters, PlotMap, f_features);
+    AnalyseEvents(treeReader, counters, plots, f_features);
 }
 
 int main(int argc, char* argv[]) {
   vector<string> cutNames = {
     "Initial",
+    "2 leptons",
     "1/2 b-jets",
     "1 tau jet",
     "2+ untagged jets",
-    "2 leptons",
-    "OS Leptons",
-    "OS tau jet"
+    "SS Leptons",
+    "OS tau jet",
+    "mW_hadronic",
+    "mW_leptonic"
   };
 
   string process = argv[1];
-  map<string, ofstream*> PlotMap;
-  vector<string> plots = {
-    "pt_l1",
-    "pt_b1",
-    "pt_tau",
-    "MET",
-    "w_had"
-  };
-  for (auto p : plots) PlotMap[p] = new ofstream(process+"/histo_data/"
-                                                +p+".txt");
+  map<string, TH1F*> plots;
+  plots["MET"] = new TH1F("MET", "MET", 40, 0, 500);
+  plots["pt_l1"] = new TH1F("pt_l1", "pt_l1", 40, 0, 500);
+  plots["pt_b1"] = new TH1F("pt_b1", "pt_b1", 40, 0, 500);
+  plots["pt_tau"] = new TH1F("pt_tau", "pt_tau", 40, 0, 500);
+  plots["w_had"] = new TH1F("w_had", "w_had", 40, 0, 500);
+  plots["w_lep"] = new TH1F("w_lep", "w_lep", 40, 0, 500);
   vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
+
+  vector<string> features = {
+    "pt_l1",
+    "eta_l1",
+    "phi_l1",
+    "e_l1",
+
+    "pt_l2",
+    "eta_l2",
+    "phi_l2",
+    "e_l2",
+
+    "pt_tau",
+    "eta_tau",
+    "phi_tau",
+    "e_tau",
+
+    "pt_b1",
+    "eta_b1",
+    "phi_b1",
+    "e_b1",
+
+    "MET"
+  };
+
   ofstream f_features(process+"/features.txt");
-  f_features << "MET" << '\t' << "m_Whad" << endl;
-  run_analysis(process, counters, PlotMap, &f_features);
-  for (auto p : plots) PlotMap[p]->close();
+  for (int i=0; i < features.size(); i++){
+    f_features << features[i];
+    if (i!=features.size()-1)
+        f_features << '\t';
+    else 
+        f_features << endl;
+  }
   f_features.close();
+
+  run_analysis(process, counters, plots, &f_features);
+
+  for (auto p : plots) {
+      string plotname = p.first;
+      ofstream h(process+"/histo_data/"+plotname+".txt");
+      h << "Bin Low Edge" << '\t'  << "Bin Width" << '\t' << "Bin Entries" << endl;
+      for (int i=1; i < plots[plotname]->GetNbinsX(); i++) {
+        h  << plots[plotname]->GetBinLowEdge(i) << '\t'
+           << plots[plotname]->GetBinWidth(i)   << '\t'
+           << plots[plotname]->GetBinContent(i) << endl;
+      }
+      h.close();
+  }
 
   ofstream f_counters(process+"/cuts.txt");
   f_counters << "Cut Name" << '\t' << "MC Events" << endl;
-
   for (int i=0; i < cutNames.size(); i++)
     f_counters << cutNames[i] << '\t' << counters[i] << endl;
-
   f_counters.close();
+
   return 0;
 }
