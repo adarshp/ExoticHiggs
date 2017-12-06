@@ -115,19 +115,17 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
         met_px = MET*cos(met->Phi),
         met_py = MET*sin(met->Phi);
 
-      a = 4*(pow(l1_pz,2)-pow(l1_E,2));
-      d = pow(mW,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
-      b = 4*l1_pz*d;
-      c = d*d-4*pow(scale*MET*l1_pz,2);
-      delta=b*b-4*a*c;
+      auto update = [&] () {
+        a = 4*(pow(l1_pz,2)-pow(l1_E,2));
+        d = pow(mW,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
+        b = 4*l1_pz*d;
+        c = d*d-4*pow(scale*MET*l1_pz,2);
+        delta=b*b-4*a*c;
+      };
     
       while(delta<0) {
           scale -= 0.01;
-          a      = 4*(pow(l1_pz,2)-pow(l1_E,2));
-          d      = mW*mW+2*scale*(l1_px*met_px+l1_py*met_py);
-          b      = 4*l1_pz*d;
-          c      = d*d-4*pow(scale*MET*l1_pz,2);
-          delta  = b*b-4*a*c;
+          update();
       }
     
       double  sol1 = (-b+sqrt(delta))/(2*a),
