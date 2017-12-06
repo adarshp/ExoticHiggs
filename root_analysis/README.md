@@ -14,6 +14,6 @@ To make the cut-flow tables (TeX), do:
 
 `python cut_n_count_analysis.py`
 
-To make the BDT response histographs, do:
+To make the BDT response histograms, do:
 
 `python bdt_analysis.py`
