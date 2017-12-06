@@ -195,8 +195,6 @@ int main(int argc, char* argv[]) {
     "2+ untagged jets",
     "SS Leptons",
     "OS tau jet",
-    "mW_hadronic",
-    "mW_leptonic"
   };
 
   string process = argv[1];
