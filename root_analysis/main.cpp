@@ -23,7 +23,6 @@
 #include <fstream>
 
 using namespace std;
-using namespace tbb;
 
 template <class T>
 Candidate make_candidate(T* delphes_particle) {
