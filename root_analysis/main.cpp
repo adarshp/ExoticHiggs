@@ -7,6 +7,7 @@
 #include "TTree.h"
 #include "TH1F.h"
 #include "TMath.h"
+#include "TLorentzVector.h"
 #include "TTreeReader.h"
 #include "fastjet/PseudoJet.hh"
 #include "classes/DelphesClasses.h"
@@ -25,8 +26,8 @@ Candidate make_candidate(T* delphes_particle) {
   return candidate;
 }
 
-void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream* f_features) {
+void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
+        map<string, TH1F*> plots, ofstream& f_features) {
 
   TClonesArray *branchJet       = treeReader->UseBranch("Jet"),
                *branchElectron  = treeReader->UseBranch("Electron"),
@@ -123,6 +124,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
         delta=b*b-4*a*c;
       };
     
+      update();
+
       while(delta<0) {
           scale -= 0.01;
           update();
@@ -137,39 +140,27 @@ void AnalyseEvents(ExRootTreeReader *treeReader, vector<int>& counters,
 
     plots["w_lep"]->Fill(W_leptonic.m());
 
-    *f_features  
+    auto write_momentum_components = [&] (TLorentzVector momentum) {
+        f_features << momentum.Pt()  << '\t'
+                   << momentum.Eta() << '\t'
+                   << momentum.Phi() << '\t'
+                   << momentum.E()   << '\t';
+    };
 
-        << leptons[0].Momentum.Pt()  << '\t'
-        << leptons[0].Momentum.Eta() << '\t'
-        << leptons[0].Momentum.Phi() << '\t'
-        << leptons[0].Momentum.E()   << '\t'
+    write_momentum_components(leptons[0].Momentum);
+    write_momentum_components(leptons[1].Momentum);
+    write_momentum_components(tau_jets[0]->P4());
+    write_momentum_components(b_jets[0]->P4());
 
-        << leptons[1].Momentum.Pt()  << '\t'
-        << leptons[1].Momentum.Eta() << '\t'
-        << leptons[1].Momentum.Phi() << '\t'
-        << leptons[1].Momentum.E()   << '\t'
-
-        << tau_jets[0]->P4().Pt()    << '\t'
-        << tau_jets[0]->P4().Eta()   << '\t'
-        << tau_jets[0]->P4().Phi()   << '\t'
-        << tau_jets[0]->P4().E()     << '\t'
-
-        << b_jets[0]->P4().Pt()      << '\t'
-        << b_jets[0]->P4().Eta()     << '\t'
-        << b_jets[0]->P4().Phi()     << '\t'
-        << b_jets[0]->P4().E()       << '\t'
-
-        << W_hadronic.Momentum.M()   << '\t'
-        << W_leptonic.m()            << '\t'
-
-        << met->MET                  << endl;
-    }
-
-    progressBar.Finish();
+    f_features   << W_hadronic.Momentum.M() << '\t'
+                 << W_leptonic.m()          << '\t'
+                 << met->MET                << endl;
+  }
+  progressBar.Finish();
 }
 
 void run_analysis(string process, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream* f_features) {
+        map<string, TH1F*> plots, ofstream& f_features) {
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
@@ -186,52 +177,34 @@ int main(int argc, char* argv[]) {
     "SS Leptons",
     "OS tau jet",
   };
+  vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
 
   string process = argv[1];
   map<string, TH1F*> plots;
-  plots["MET"] = new TH1F("MET", "MET", 40, 0, 500);
-  plots["pt_l1"] = new TH1F("pt_l1", "pt_l1", 40, 0, 500);
-  plots["pt_b1"] = new TH1F("pt_b1", "pt_b1", 40, 0, 500);
+
+  plots["MET"]    = new TH1F("MET", "MET", 40, 0, 500);
+  plots["pt_l1"]  = new TH1F("pt_l1", "pt_l1", 40, 0, 500);
+  plots["pt_b1"]  = new TH1F("pt_b1", "pt_b1", 40, 0, 500);
   plots["pt_tau"] = new TH1F("pt_tau", "pt_tau", 40, 0, 500);
-  plots["w_had"] = new TH1F("w_had", "w_had", 40, 0, 500);
-  plots["w_lep"] = new TH1F("w_lep", "w_lep", 40, 0, 500);
-  vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
+  plots["w_had"]  = new TH1F("w_had", "w_had", 40, 0, 500);
+  plots["w_lep"]  = new TH1F("w_lep", "w_lep", 40, 0, 500);
 
   vector<string> features = {
-    "pt_l1",
-    "eta_l1",
-    "phi_l1",
-    "e_l1",
-
-    "pt_l2",
-    "eta_l2",
-    "phi_l2",
-    "e_l2",
-
-    "pt_tau",
-    "eta_tau",
-    "phi_tau",
-    "e_tau",
-
-    "pt_b1",
-    "eta_b1",
-    "phi_b1",
-    "e_b1",
-
+    "pt_l1"  , "eta_l1"  , "phi_l1"  , "e_l1"  ,
+    "pt_l2"  , "eta_l2"  , "phi_l2"  , "e_l2"  ,
+    "pt_tau" , "eta_tau" , "phi_tau" , "e_tau" ,
+    "pt_b1"  , "eta_b1"  , "phi_b1"  , "e_b1"  ,
     "MET"
   };
 
   ofstream f_features(process+"/features.txt");
   for (int i=0; i < features.size(); i++){
     f_features << features[i];
-    if (i!=features.size()-1)
-        f_features << '\t';
-    else 
-        f_features << endl;
+    if (i!=features.size()-1) f_features << '\t';
+    else f_features << endl;
   }
+  run_analysis(process, counters, plots, f_features);
   f_features.close();
-
-  run_analysis(process, counters, plots, &f_features);
 
   for (auto p : plots) {
       string plotname = p.first;
