@@ -2,13 +2,8 @@
 #include <stdio.h>
 #include "TH1.h"
 #include "TROOT.h"
-#include "TCanvas.h"
-#include "ROOT/TSeq.hxx"
 #include "TSystem.h"
 #include "TClonesArray.h"
-#include "TPaveText.h"
-#include "THStack.h"
-#include "TString.h"
 #include "TTree.h"
 #include "TH1F.h"
 #include "TMath.h"
