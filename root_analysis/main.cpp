@@ -9,11 +9,9 @@
 #include "TMath.h"
 #include "TTreeReader.h"
 #include "fastjet/PseudoJet.hh"
-#include "fastjet/ClusterSequence.hh"
 #include "classes/DelphesClasses.h"
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
 #include "external/ExRootAnalysis/ExRootProgressBar.h"
-#include "external/ExRootAnalysis/ExRootResult.h"
 #include "external/ExRootAnalysis/ExRootUtilities.h"
 #include <fstream>
 
