@@ -1,0 +1,4 @@
+define boson = z h a
+generate p p > t t~ boson, (t > b w+, w+ > l+ vl), (t~ > b~ w-, w- > l- vl~), (boson > ta+ ta-) @0
+generate p p > t t~ boson j, (t > b w+, w+ > l+ vl), (t~ > b~ w-, w- > l- vl~), (boson > ta+ ta-) @1
+output tttautau
