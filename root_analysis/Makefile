@@ -1,7 +1,5 @@
-TARGET         = main
 ####################################
 CC             = g++ -std=c++11 -Wno-deprecated
-OBJS           = $(TARGET).o
 ######### ROOT #####################
 ROOTCFLAGS     = $(shell root-config --cflags)
 ROOTLIBS       = $(shell root-config --libs) -lMLP -lMinuit -lTreePlayer -lTMVA -lXMLIO  -lMLP -lm
@@ -31,12 +29,7 @@ CXXLIBS       += $(DELPHESLIBS)
 
 #########################################################
 
-all: $(TARGET)
+all: main ditop_analysis
 
-$(TARGET): $(OBJS)
-	$(CC) $(CXXFLAGS) $(OBJS) $(CXXLIBS) -o $@
-.cc.o:
-	$(CC) $(CXXFLAGS) -c $<
-
-clean:
-	rm -f $(TARGET) $(OBJS) *~
+%: %.o
+	$(CC) $(CXXFLAGS) ditop.o $(CXXLIBS) -o $@

@@ -79,34 +79,44 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     for(int i = 0; i < branchMuon->GetEntriesFast(); i++)
         leptons.push_back(make_candidate((Muon*) branchMuon->At(i)));
 
-    int j = 0; counters[j]++; j++;
+    int j = 0; 
+    counters[j]++; j++;
 
-    // Two leptons
-    if (leptons.size() != 2) continue; counters[j]++; j++;
+    // =======================================================================
+    // Identification cuts
+    // =======================================================================
+ 
+    // One lepton
+    if (leptons.size() != 1) continue; counters[j]++; j++;
     
-    // One or two b-jets
-    if (b_jets.size()!=1 and b_jets.size()!=2) continue; counters[j]++; j++;
-    plots["pt_b1"]->Fill(b_jets[0]->PT);
+    // Two top-tagged jets
+    if (top_jets.size() != 2) continue; counters[j]++; j++;
 
-    // One tau jet
-    if (tau_jets.size() != 1) continue; counters[j]++; j++;
-    plots["pt_tau"]->Fill(tau_jets[0]->PT);
+    // Top quark pt histogram
+    for (auto t : top_jets) plots["pt_top"]->Fill(t->PT);
+   
+    // One or two b-jets 
+    if (b_jets.size()!=1 or b_jets.size()!=2) continue; counters[j]++; j++;
+
+    // b jet pt histogram
+    for (auto b : b_jets) plots["pt_b"]->Fill(b->PT);
 
     // At least two untagged jets
     if (untagged_jets.size() < 2) continue; counters[j]++; j++;
 
-    // SS leptons
-    if (leptons[0].Charge!=leptons[1].Charge) continue; counters[j]++; j++;
-    plots["pt_l1"]->Fill(leptons[0].PT);
-
-    // OS tau jet
-    if(leptons[0].Charge==tau_jets[0]->Charge) continue; counters[j]++; j++;
+    cout << " ok till here " << endl;
+    // ========================================================================
+    // Mass reconstructions
+    // ========================================================================
 
     // Neutrino reconstruction
     double delta = 10000.0, mW = 80.4;
-
+    //
+    // ------------------------------------------------------------------------
     // Reconstruct hadronic W
+
     PseudoJet W_hadronic;         
+
 
     for (int i=0; i < untagged_jets.size(); i++) {
       for (int j=i+1; j < untagged_jets.size(); j++) {
@@ -118,38 +128,33 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       } 
     }
     
+    // ------------------------------------------------------------------------
     // Reconstruct leptonic W
+
     double
-        a   = 0, b = 0, c = 0, d = 0, scale = 1.0,
         l1_pz  = leptons[0].Momentum.Pz(),
         l1_px  = leptons[0].Momentum.Px(),
         l1_py  = leptons[0].Momentum.Py(),
         l1_E   = leptons[0].Momentum.E(),
         MET    = met->MET,
         met_px = MET*cos(met->Phi),
-        met_py = MET*sin(met->Phi);
+        met_py = MET*sin(met->Phi),
+        a = pow(l1_E, 2) - pow(l1_pz, 2),
+        k = (pow(mW, 2)/2) + (l1_px*met_px + l1_py*met_py),
+        b = -2*k*l1_pz,
+        c = pow(l1_E*MET, 2) - k*k,
+        disc = b*b - 4*a*c;
 
-      auto update = [&] () {
-        a = 4*(pow(l1_pz,2)-pow(l1_E,2));
-        d = pow(mW,2) + 2*scale*(l1_px*met_px+l1_py*met_py);
-        b = 4*l1_pz*d;
-        c = d*d-4*pow(scale*MET*l1_pz,2);
-        delta=b*b-4*a*c;
-      };
 
-      update();
-
-      while(delta<0) {
-          scale -= 0.01;
-          update();
-      }
-    
-      double  sol1 = (-b+sqrt(delta))/(2*a),
-              sol2 = (-b-sqrt(delta))/(2*a),
+      double  sol1 = (-b+sqrt(disc))/(2*a),
+              sol2 = (-b-sqrt(disc))/(2*a),
               pz   = abs(sol1) < abs(sol2) ? sol1 : sol2;
     
       PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
+
+    // ------------------------------------------------------------------------
+    // Write features to file.
 
     auto write_momentum_components = [&] (TLorentzVector momentum) {
         f_features << momentum.Pt()  << '\t'
@@ -159,8 +164,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     };
 
     write_momentum_components(leptons[0].Momentum);
-    write_momentum_components(leptons[1].Momentum);
-    write_momentum_components(tau_jets[0]->P4());
+    write_momentum_components(top_jets[0]->P4());
     write_momentum_components(b_jets[0]->P4());
 
 
@@ -169,7 +173,9 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     delta=10000.0;
     int w_ind;
 
+    // ------------------------------------------------------------------------
     // Reconstruct top candidate
+
     PseudoJet top_candidate;
     for (int i=0; i<2; i++){
       for (int j=0; j<b_jets.size(); j++){
@@ -183,8 +189,9 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     }
     plots["m_top"]->Fill(top_candidate.m());
 
+    // ------------------------------------------------------------------------
     // Reconstruct H candidate
-    PseudoJet H_candidate(tau_jets[0]->P4()+leptons[1].Momentum);
+    PseudoJet H_candidate(top_jets[0]->P4()+top_jets[1]->P4());
     plots["m_H"]->Fill(H_candidate.m());
 
     // Reconstruct Charged Higgs
@@ -195,6 +202,9 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       charged_higgs.reset_momentum((H_candidate+W_hadronic).four_mom());
 
     plots["m_cH"]->Fill(charged_higgs.m());
+
+    // ------------------------------------------------------------------------
+    // Write features to file.
 
     f_features   << W_hadronic.m() << '\t'
                  << W_leptonic.m() << '\t'
@@ -211,15 +221,15 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     double mH = 725.09;
     double mC = 1016.2776;
 
-    // Width of ditau mass window
-    double w_tautau = 0.25;
-    double w_tautauW = 0.2*mC;
+    // Width of ditop mass window
+    /* double w_toptop = 0.25; */
+    /* double w_tautauW = 0.2*mC; */
 
-    double EH = (pow(mC, 2) + pow(mH, 2) - pow(mW, 2))/(2*mH);
-    if (!(((1 - delta - w_tautau)*mH < H_candidate.m() < (1-delta+w_tautau)*mH)
-        and ((mH/EH)*(charged_higgs.m() - mC - w_tautauW) 
-            < H_candidate.m() - mH 
-            < (mH/EH)*(charged_higgs.m() - mC + w_tautauW)))) continue;
+    /* double EH = (pow(mC, 2) + pow(mH, 2) - pow(mW, 2))/(2*mH); */
+    /* if (!(((1 - delta - w_tautau)*mH < H_candidate.m() < (1-delta+w_tautau)*mH) */
+    /*     and ((mH/EH)*(charged_higgs.m() - mC - w_tautauW) */ 
+    /*         < H_candidate.m() - mH */ 
+    /*         < (mH/EH)*(charged_higgs.m() - mC + w_tautauW)))) continue; */
     counters[j]++; j++;
   }
   progressBar.Finish();
@@ -237,13 +247,10 @@ int main(int argc, char* argv[]) {
 
   vector<string> cutNames = {
     "Initial",
-    "2 leptons",
-    "1/2 b-jets",
-    "1 tau jet",
+    "1 leptons",
+    "2 top jets",
+    "1/2 b jets",
     "2+ untagged jets",
-    "SS Leptons",
-    "OS tau jet",
-    "2D mass cut"
   };
 
   vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
