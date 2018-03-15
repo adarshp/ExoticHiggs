@@ -10,9 +10,10 @@
 # Script for generating events on the cluster.
 # Usage: generation_script <array_id> <random_seed>
 
+date
+
 # Enter /tmp directory which provides storage that is local to the node itself,
 # so that we don't clog up /xdisk or /extra
-date
 cd /tmp
 mg5=$HOME/MG5_aMC_v2_6_0/bin/mg5_aMC
 $mg5 $HOME/ExoticHiggs/Cards/mg5_proc_cards/charged_higgs.dat
