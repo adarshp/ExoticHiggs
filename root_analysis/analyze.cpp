@@ -15,6 +15,7 @@
 #include "external/ExRootAnalysis/ExRootProgressBar.h"
 #include "external/ExRootAnalysis/ExRootUtilities.h"
 #include <fstream>
+#include "cHtb_xsection.h"
 
 using namespace std;
 using namespace fastjet;
@@ -28,17 +29,16 @@ Candidate make_candidate(T* delphes_particle) {
 }
 
 void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream& f_features) {
+        ofstream& f_features, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
-    *branchFatJet    = treeReader->UseBranch("FatJet"),
+    /* *branchFatJet    = treeReader->UseBranch("FatJet"), */
     *branchElectron  = treeReader->UseBranch("Electron"),
     *branchMuon      = treeReader->UseBranch("Muon"),
     *branchMissingET = treeReader->UseBranch("MissingET");
 
   long totalEntries = treeReader->GetEntries();
-  cout << "** Chain contains " << totalEntries << " events" << endl;
   MissingET* met; Electron* electron; Jet* jet;
 
   ExRootProgressBar progressBar(totalEntries-1);
@@ -48,7 +48,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     treeReader->ReadEntry(i);
 
     met = (MissingET*) branchMissingET->At(0);
-    plots["MET"]->Fill(met->MET);
 
     // Declare containers
     vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
@@ -64,14 +63,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       jets.push_back(jet);
     }
 
-    // Collect top-tagged jets
-    for (int i = 0; i < branchFatJet->GetEntriesFast(); i++) {
-      jet = (Jet*) branchFatJet->At(i);
-      if (jet->BTag & (1 << 0)) top_jets.push_back(jet);
-    }
-
-    plots["n_top"]->Fill(top_jets.size());
-
     // Collect leptons
     for(int i = 0; i < branchElectron->GetEntriesFast(); i++)
         leptons.push_back(make_candidate((Electron*)branchElectron->At(i)));
@@ -86,18 +77,15 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     
     // One or two b-jets
     if (b_jets.size()!=1 and b_jets.size()!=2) continue; counters[j]++; j++;
-    plots["pt_b1"]->Fill(b_jets[0]->PT);
 
     // One tau jet
     if (tau_jets.size() != 1) continue; counters[j]++; j++;
-    plots["pt_tau"]->Fill(tau_jets[0]->PT);
 
     // At least two untagged jets
     if (untagged_jets.size() < 2) continue; counters[j]++; j++;
 
     // SS leptons
     if (leptons[0].Charge!=leptons[1].Charge) continue; counters[j]++; j++;
-    plots["pt_l1"]->Fill(leptons[0].PT);
 
     // OS tau jet
     if(leptons[0].Charge==tau_jets[0]->Charge) continue; counters[j]++; j++;
@@ -181,11 +169,9 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
         } 
       }
     }
-    plots["m_top"]->Fill(top_candidate.m());
 
     // Reconstruct H candidate
     PseudoJet H_candidate(tau_jets[0]->P4()+leptons[1].Momentum);
-    plots["m_H"]->Fill(H_candidate.m());
 
     // Reconstruct Charged Higgs
     PseudoJet charged_higgs;
@@ -194,7 +180,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     else
       charged_higgs.reset_momentum((H_candidate+W_hadronic).four_mom());
 
-    plots["m_cH"]->Fill(charged_higgs.m());
 
     f_features   << W_hadronic.m() << '\t'
                  << W_leptonic.m() << '\t'
@@ -207,13 +192,10 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 
     delta = 0.4;
 
-    // Mass of particles we are searching for
-    double mH = 725.09;
-    double mC = 1016.2776;
-
     // Width of ditau mass window
-    double w_tautau = 0.25;
-    double w_tautauW = 0.2*mC;
+    double 
+        w_tautau = 0.25,
+        w_tautauW = 0.2*mC;
 
     double EH = (pow(mC, 2) + pow(mH, 2) - pow(mW, 2))/(2*mH);
     if (!(((1 - delta - w_tautau)*mH < H_candidate.m() < (1-delta+w_tautau)*mH)
@@ -225,12 +207,32 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
   progressBar.Finish();
 }
 
-void run_analysis(string process, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream& f_features) {
+vector<int> run_analysis(string process, vector<string> cutNames,
+        ofstream& f_features, double mC, double mH) {
+    vector<int> counters;
+    for (auto cut : cutNames) counters.push_back(0);
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, counters, plots, f_features);
+    AnalyseEvents(treeReader, counters, f_features, mC, mH);
+    return counters;
+}
+
+double calculate_significance(vector<vector<int>> counters, double signal_xsection) {
+    double 
+        luminosity = 3000.0,
+        tttautau_xsection = 95.71,
+        n_tttautau = counters[1][counters[1].size()-1];
+
+    n_tttautau = (n_tttautau == 0)?(n_tttautau=3):(n_tttautau=n_tttautau);
+
+    double
+        xs_signal = ((double) counters[0][counters[0].size()-1]/counters[0][0])*signal_xsection,
+        xs_tttautau = ((double) n_tttautau/counters[1][0])*tttautau_xsection,
+        sig = (xs_signal/sqrt(xs_tttautau))*sqrt(luminosity);
+
+    cout << sig << endl; 
+    return sig;
 }
 
 int main(int argc, char* argv[]) {
@@ -246,19 +248,12 @@ int main(int argc, char* argv[]) {
     "2D mass cut"
   };
 
-  vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
 
-  string process = argv[1];
-  map<string, TH1F*> plots;
-
-  plots["n_top"]  = new TH1F("n_top", "n_top", 4, 0, 4);
-  plots["MET"]    = new TH1F("MET", "MET", 40, 0, 500);
-  plots["pt_l1"]  = new TH1F("pt_l1", "pt_l1", 40, 0, 500);
-  plots["pt_b1"]  = new TH1F("pt_b1", "pt_b1", 40, 0, 500);
-  plots["pt_tau"] = new TH1F("pt_tau", "pt_tau", 40, 0, 500);
-  plots["m_top"]  = new TH1F("m_top", "m_top", 40, 0, 300);
-  plots["m_H"]    = new TH1F("m_H", "m_H", 40, 0, 3000);
-  plots["m_cH"]   = new TH1F("m_cH", "m_cH", 40, 0, 3000);
+  string signal_process = argv[1];
+  double 
+    mC = atof(argv[2]),
+    mH = atof(argv[3]),
+    BR = atof(argv[4]);
 
   vector<string> features = {
     "pt_l1"  , "eta_l1"  , "phi_l1"  , "e_l1"  ,
@@ -268,32 +263,31 @@ int main(int argc, char* argv[]) {
     "MET", "mH", "mC"
   };
 
-  ofstream f_features(process+"/features.txt");
-  for (int i=0; i < features.size(); i++){
-    f_features << features[i];
-    if (i!=features.size()-1) f_features << '\t';
-    else f_features << endl;
-  }
-  run_analysis(process, counters, plots, f_features);
-  f_features.close();
+  ofstream f_features_signal("/tmp/"+signal_process+"_features.txt");
+  ofstream f_features_bg1("/tmp/tttautau_"+signal_process+"_features.txt");
+  auto write = [&] (ofstream& f) {
+    for (int i=0; i < features.size(); i++){
+        f << features[i];
+        if (i != features.size() - 1) f << '\t';
+        else f << endl;
+    }
+  };
 
-  for (auto p : plots) {
-      string plotname = p.first;
-      ofstream h(process+"/histo_data/"+plotname+".txt");
-      h << "Bin Low Edge" << '\t'  << "Bin Width" << '\t' << "Bin Entries" << endl;
-      for (int i=1; i < plots[plotname]->GetNbinsX(); i++) {
-        h  << plots[plotname]->GetBinLowEdge(i) << '\t'
-           << plots[plotname]->GetBinWidth(i)   << '\t'
-           << plots[plotname]->GetBinContent(i) << endl;
-      }
-      h.close();
-  }
+  write(f_features_signal);
+  write(f_features_bg1);
 
-  ofstream f_counters(process+"/cuts.txt");
-  f_counters << "Cut Name" << '\t' << "MC Events" << endl;
-  for (int i=0; i < cutNames.size(); i++)
-    f_counters << cutNames[i] << '\t' << counters[i] << endl;
-  f_counters.close();
+  double 
+    tan_beta = 1.5,
+    xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
+
+  vector<vector<int>> counters = {
+    run_analysis(signal_process, cutNames, f_features_signal, mC, mH),
+    run_analysis("tttautau", cutNames, f_features_bg1, mC, mH)
+  };
+
+  double significance = calculate_significance(counters, xsection);
+  f_features_signal.close();
+  f_features_bg1.close();
 
   return 0;
 }

@@ -1,5 +1,5 @@
 ####################################
-CC             = g++ -std=c++11 -Wno-deprecated
+CXX             = g++ -std=c++11 -Wno-deprecated
 ######### ROOT #####################
 ROOTCFLAGS     = $(shell root-config --cflags)
 ROOTLIBS       = $(shell root-config --libs) -lMLP -lMinuit -lTreePlayer -lTMVA -lXMLIO  -lMLP -lm
@@ -29,7 +29,14 @@ CXXLIBS       += $(DELPHESLIBS)
 
 #########################################################
 
-all: main ditop_analysis
+SRC=analyze.cpp cHtb_xsection.cpp
 
-%: %.o
-	$(CC) $(CXXFLAGS) ditop.o $(CXXLIBS) -o $@
+all: analyze
+
+analyze: analyze.o cHtb_xsection.o
+	$(CXX) $(CXXFLAGS) $^ $(CXXLIBS) -o $@
+
+analyze.o: analyze.cpp cHtb_xsection.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+cHtb_xsection.o: cHtb_xsection.h

@@ -27,6 +27,9 @@ Candidate make_candidate(T* delphes_particle) {
   return candidate;
 }
 
+template <class T>
+void print(T x) { cout << x << endl; }
+
 void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
         map<string, TH1F*> plots, ofstream& f_features) {
 
@@ -86,14 +89,15 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     // Identification cuts
     // =======================================================================
  
-    // One lepton
-    if (leptons.size() != 1) continue; counters[j]++; j++;
+    // Two leptons
+    if (leptons.size() != 2) continue; counters[j]++; j++;
     
-    // Two top-tagged jets
-    if (top_jets.size() != 2) continue; counters[j]++; j++;
-
     // Top quark pt histogram
     for (auto t : top_jets) plots["pt_top"]->Fill(t->PT);
+
+    // 1 top-tagged jets
+    if (top_jets.size() != 1) continue; counters[j]++; j++;
+
    
     // One or two b-jets 
     if (b_jets.size()!=1 or b_jets.size()!=2) continue; counters[j]++; j++;
@@ -104,7 +108,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     // At least two untagged jets
     if (untagged_jets.size() < 2) continue; counters[j]++; j++;
 
-    cout << " ok till here " << endl;
     // ========================================================================
     // Mass reconstructions
     // ========================================================================
@@ -139,18 +142,16 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
         MET    = met->MET,
         met_px = MET*cos(met->Phi),
         met_py = MET*sin(met->Phi),
-        a = pow(l1_E, 2) - pow(l1_pz, 2),
-        k = (pow(mW, 2)/2) + (l1_px*met_px + l1_py*met_py),
-        b = -2*k*l1_pz,
-        c = pow(l1_E*MET, 2) - k*k,
-        disc = b*b - 4*a*c;
-
-
-      double  sol1 = (-b+sqrt(disc))/(2*a),
-              sol2 = (-b-sqrt(disc))/(2*a),
-              pz   = abs(sol1) < abs(sol2) ? sol1 : sol2;
+        a      = pow(l1_E, 2) - pow(l1_pz, 2),
+        k      = (pow(mW, 2)/2) + (l1_px*met_px + l1_py*met_py),
+        b      = -2*k*l1_pz,
+        c      = pow(l1_E*MET, 2) - k*k,
+        disc   = b*b - 4*a*c,
+        sol1   = (-b+sqrt(disc))/(2*a),
+        sol2   = (-b-sqrt(disc))/(2*a),
+        pz     = abs(sol1) < abs(sol2) ? sol1 : sol2;
     
-      PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
+    PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
 
     // ------------------------------------------------------------------------
@@ -223,7 +224,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 
     // Width of ditop mass window
     /* double w_toptop = 0.25; */
-    /* double w_tautauW = 0.2*mC; */
+    /* double w_toptopW = 0.2*mC; */
 
     /* double EH = (pow(mC, 2) + pow(mH, 2) - pow(mW, 2))/(2*mH); */
     /* if (!(((1 - delta - w_tautau)*mH < H_candidate.m() < (1-delta+w_tautau)*mH) */
@@ -238,7 +239,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 void run_analysis(string process, vector<int>& counters,
         map<string, TH1F*> plots, ofstream& f_features) {
     TChain chain("Delphes");
-    FillChain(&chain, (process+"_input_list.txt").c_str());
+    FillChain(&chain, ("input_lists/"+process+".txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
     AnalyseEvents(treeReader, counters, plots, f_features);
 }
@@ -247,12 +248,11 @@ int main(int argc, char* argv[]) {
 
   vector<string> cutNames = {
     "Initial",
-    "1 leptons",
-    "2 top jets",
+    "2 leptons",
+    "1 top jets",
     "1/2 b jets",
     "2+ untagged jets",
   };
-
   vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
 
   string process = argv[1];
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
   plots["MET"]    = new TH1F("MET", "MET", 40, 0, 500);
   plots["pt_l1"]  = new TH1F("pt_l1", "pt_l1", 40, 0, 500);
   plots["pt_b1"]  = new TH1F("pt_b1", "pt_b1", 40, 0, 500);
-  plots["pt_tau"] = new TH1F("pt_tau", "pt_tau", 40, 0, 500);
+  plots["pt_top"] = new TH1F("pt_top", "pt_top", 40, 0, 1500);
   plots["m_top"]  = new TH1F("m_top", "m_top", 40, 0, 300);
   plots["m_H"]    = new TH1F("m_H", "m_H", 40, 0, 3000);
   plots["m_cH"]   = new TH1F("m_cH", "m_cH", 40, 0, 3000);
