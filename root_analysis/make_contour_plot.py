@@ -47,8 +47,14 @@ def make_contour_plot(filename, res):
     ymin, ymax = min(df['mH']), max(df['mH'])
     plt.xlim(xmin, 2500)
     plt.ylim(ymin, 2500)
+
+    x = np.arange(525,2500, 0.1) 
+    plt.plot(x,x,color = 'gray', linestyle = 'dashed', linewidth=1.0)
+    plt.text(700, 1050, r"$m_{H^\pm} = m_H$", fontsize=10,rotation = 45)
+
     plt.xlabel('$m_H^\pm$ (GeV)', fontsize=11)
     plt.ylabel('$m_H$ (GeV)', fontsize=11)
+
     plt.tight_layout()
     plt.savefig('plots/C_HW_tataW.pdf')
 
