@@ -46,7 +46,7 @@ def make_contour_plot(filename, res):
     plt.xlabel('$m_H^\pm$', fontsize=13)
     plt.ylabel('$m_H$', fontsize=13)
     plt.tight_layout()
-    plt.savefig('imshow.pdf')
+    plt.savefig('plots/C_HW_tataW.pdf')
 
 if __name__ == '__main__':
     make_contour_plot('significances.txt', 100)
