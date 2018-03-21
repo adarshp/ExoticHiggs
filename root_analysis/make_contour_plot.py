@@ -1,13 +1,14 @@
 import matplotlib
 import numpy as np
 
-matplotlib.use('Agg')
+matplotlib.use('pgf')
 
 from matplotlib import pyplot as plt
 import pandas as pd
 
-
 matplotlib.style.use('ggplot')
+figwidth = 6.12
+plt.rcParams['figure.figsize'] = (figwidth,figwidth*3/4)
 
 def get_XYZ_grid(df, res):
     df = df.replace('None',0)
@@ -46,7 +47,7 @@ def make_contour_plot(filename, res):
     plt.xlabel('$m_H^\pm$', fontsize=13)
     plt.ylabel('$m_H$', fontsize=13)
     plt.tight_layout()
-    plt.savefig('plots/C_HW_tataW.pdf')
+    plt.savefig('plots/C_HW_tataW.pgf')
 
 if __name__ == '__main__':
     make_contour_plot('significances.txt', 100)
