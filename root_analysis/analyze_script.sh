@@ -3,7 +3,7 @@ for p in $backgrounds; do
     ls -f /rsgrps/shufang/Events/$p/*.root > $p\_input_list.txt
 done
 
-echo "mC mH signficance" > significances.txt
+echo "mC mH significance" > significances.txt
 
 analyze_bp() {
     read mC mH BR <<< $1
