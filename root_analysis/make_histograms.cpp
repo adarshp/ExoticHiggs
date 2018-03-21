@@ -6,6 +6,7 @@
 #include "TClonesArray.h"
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 #include "TTreeReader.h"
@@ -28,11 +29,11 @@ Candidate make_candidate(T* delphes_particle) {
 }
 
 void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream& f_features) {
+        map<string, TH1F*> plots, map<string, TH2F*> plots2D,
+        ofstream& f_features, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
-    *branchFatJet    = treeReader->UseBranch("FatJet"),
     *branchElectron  = treeReader->UseBranch("Electron"),
     *branchMuon      = treeReader->UseBranch("Muon"),
     *branchMissingET = treeReader->UseBranch("MissingET");
@@ -63,14 +64,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       else untagged_jets.push_back(jet);
       jets.push_back(jet);
     }
-
-    // Collect top-tagged jets
-    for (int i = 0; i < branchFatJet->GetEntriesFast(); i++) {
-      jet = (Jet*) branchFatJet->At(i);
-      if (jet->BTag & (1 << 0)) top_jets.push_back(jet);
-    }
-
-    plots["n_top"]->Fill(top_jets.size());
 
     // Collect leptons
     for(int i = 0; i < branchElectron->GetEntriesFast(); i++)
@@ -196,6 +189,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 
     plots["m_cH"]->Fill(charged_higgs.m());
 
+    plots2D["mC_mH"]->Fill(charged_higgs.m(), H_candidate.m());
     f_features   << W_hadronic.m() << '\t'
                  << W_leptonic.m() << '\t'
                  << met->MET        << '\t'         
@@ -206,10 +200,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     // Mass cuts
 
     delta = 0.4;
-
-    // Mass of particles we are searching for
-    double mH = 725.09;
-    double mC = 1016.2776;
 
     // Width of ditau mass window
     double w_tautau = 0.25;
@@ -226,14 +216,19 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 }
 
 void run_analysis(string process, vector<int>& counters,
-        map<string, TH1F*> plots, ofstream& f_features) {
+        map<string, TH1F*> plots, map<string, TH2F*> plots2D,
+        ofstream& f_features, double mC, double mH) {
     TChain chain("Delphes");
-    FillChain(&chain, ("input_lists/"+process+".txt").c_str());
+    FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, counters, plots, f_features);
+    AnalyseEvents(treeReader, counters, plots, plots2D, f_features, mC, mH);
 }
 
 int main(int argc, char* argv[]) {
+
+  double 
+    mC = atof(argv[1]),
+    mH = atof(argv[2]);
 
   vector<string> cutNames = {
     "Initial",
@@ -248,7 +243,8 @@ int main(int argc, char* argv[]) {
 
   vector<int> counters; for (auto cut : cutNames) counters.push_back(0);
 
-  string process = argv[1];
+  string process = "Signal";
+
   map<string, TH1F*> plots;
 
   plots["n_top"]  = new TH1F("n_top", "n_top", 4, 0, 4);
@@ -259,6 +255,9 @@ int main(int argc, char* argv[]) {
   plots["m_top"]  = new TH1F("m_top", "m_top", 40, 0, 300);
   plots["m_H"]    = new TH1F("m_H", "m_H", 40, 0, 3000);
   plots["m_cH"]   = new TH1F("m_cH", "m_cH", 40, 0, 3000);
+
+  map<string, TH2F*> plots2D;
+  plots2D["mC_mH"]   = new TH2F("mC_mH", "mC_mH", 40, 0, 3000, 40, 0, 3000);
 
   vector<string> features = {
     "pt_l1"  , "eta_l1"  , "phi_l1"  , "e_l1"  ,
@@ -274,8 +273,21 @@ int main(int argc, char* argv[]) {
     if (i!=features.size()-1) f_features << '\t';
     else f_features << endl;
   }
-  run_analysis(process, counters, plots, f_features);
+
+  run_analysis(process, counters, plots, plots2D, f_features, mC, mH);
   f_features.close();
+
+  for (auto p : plots2D) {
+      string plotname = p.first;
+      ofstream h(process+"/histo_data/"+plotname+".txt");
+      h << "Bin Low Edge" << '\t'  << "Bin Width" << '\t' << "Bin Entries" << endl;
+      for (int i=1; i < plots2D[plotname]->GetNbinsX(); i++) {
+        h  << plots2D[plotname]->GetBinLowEdge(i) << '\t'
+           << plots2D[plotname]->GetBinWidth(i)   << '\t'
+           << plots2D[plotname]->GetBinContent(i) << endl;
+      }
+      h.close();
+  }
 
   for (auto p : plots) {
       string plotname = p.first;

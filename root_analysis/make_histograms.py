@@ -18,9 +18,8 @@ def make_histo(histo_name):
     for p in [
         # 'tt_fully_leptonic_including_taus',
         # 'tt_semileptonic_including_taus',
-        # 'tttautau',
-        # 'Signal'
-        'ditop_signal'
+        'tttautau',
+        'Signal'
     ]:
         df = pd.read_table(p+'/histo_data/'+histo_name+'.txt')
         ax.bar(
@@ -38,6 +37,5 @@ def make_histo(histo_name):
     plt.savefig('histos/'+histo_name+'.pdf')
 
 if __name__ == '__main__':
-    for histo_name in [ 'MET', 'pt_l1', 'pt_b1', 'pt_tau' ,'m_top', 'pt_top', 'n_top',
-                        'm_H', 'm_cH' ]:
+    for histo_name in [ 'MET', 'pt_l1', 'pt_b1', 'pt_tau', 'm_H', 'm_cH' ]:
         make_histo(histo_name)
