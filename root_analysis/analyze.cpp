@@ -1,7 +1,8 @@
 #include <iostream>
 #include <stdio.h>
-#include "TH1.h"
+
 #include "TROOT.h"
+#include "TH1.h"
 #include "TSystem.h"
 #include "TClonesArray.h"
 #include "TTree.h"
@@ -9,6 +10,15 @@
 #include "TMath.h"
 #include "TLorentzVector.h"
 #include "TTreeReader.h"
+
+#include "TMVA/Factory.h"
+#include "TMVA/DataLoader.h"
+#include "TMVA/Tools.h"
+#include "TMVA/IMethod.h"
+#include "TMVA/MethodBase.h"
+#include "TMVA/Types.h"
+#include "TMVA/Config.h"
+
 #include "fastjet/PseudoJet.hh"
 #include "classes/DelphesClasses.h"
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
@@ -29,7 +39,7 @@ Candidate make_candidate(T* delphes_particle) {
 }
 
 void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
-        ofstream& f_features, double mC, double mH) {
+        map<string, double>& features, TTree* tree, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
@@ -139,17 +149,17 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
 
-    auto write_momentum_components = [&] (TLorentzVector momentum) {
-        f_features << momentum.Pt()  << '\t'
-                   << momentum.Eta() << '\t'
-                   << momentum.Phi() << '\t'
-                   << momentum.E()   << '\t';
-    };
+    /* auto write_momentum_components = [&] (TLorentzVector momentum) { */
+    /*     features << momentum.Pt()  << '\t' */
+    /*                << momentum.Eta() << '\t' */
+    /*                << momentum.Phi() << '\t' */
+    /*                << momentum.E()   << '\t'; */
+    /* }; */
 
-    write_momentum_components(leptons[0].Momentum);
-    write_momentum_components(leptons[1].Momentum);
-    write_momentum_components(tau_jets[0]->P4());
-    write_momentum_components(b_jets[0]->P4());
+    /* write_momentum_components(leptons[0].Momentum); */
+    /* write_momentum_components(leptons[1].Momentum); */
+    /* write_momentum_components(tau_jets[0]->P4()); */
+    /* write_momentum_components(b_jets[0]->P4()); */
 
 
     PseudoJet w_candidates[2]={W_hadronic, W_leptonic};
@@ -181,12 +191,12 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       charged_higgs.reset_momentum((H_candidate+W_hadronic).four_mom());
 
 
-    f_features   << W_hadronic.m() << '\t'
-                 << W_leptonic.m() << '\t'
-                 << met->MET        << '\t'         
-                 << H_candidate.m() << '\t'
-                 << charged_higgs.m()
-                 << endl;
+    /* f_features   << W_hadronic.m() << '\t' */
+    /*              << W_leptonic.m() << '\t' */
+    /*              << met->MET        << '\t' */         
+    /*              << H_candidate.m() << '\t' */
+    /*              << charged_higgs.m() */
+    /*              << endl; */
 
     // Mass cuts
 
@@ -203,18 +213,21 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
             < H_candidate.m() - mH 
             < (mH/EH)*(charged_higgs.m() - mC + w_tautauW)))) continue;
     counters[j]++; j++;
+    features["mC"] = charged_higgs.m();
+    features["mH"] = H_candidate.m();
+    tree->Fill();
   }
   progressBar.Finish();
 }
 
 vector<int> run_analysis(string process, vector<string> cutNames,
-        ofstream& f_features, double mC, double mH) {
+        map<string, double>& features, TTree* tree, double mC, double mH) {
     vector<int> counters;
     for (auto cut : cutNames) counters.push_back(0);
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, counters, f_features, mC, mH);
+    AnalyseEvents(treeReader, counters, features, tree, mC, mH);
     return counters;
 }
 
@@ -231,7 +244,6 @@ double calculate_significance(vector<vector<int>> counters, double signal_xsecti
         xs_tttautau = ((double) n_tttautau/counters[1][0])*tttautau_xsection,
         sig = (xs_signal/sqrt(xs_tttautau))*sqrt(luminosity);
 
-    cout << sig << endl; 
     return sig;
 }
 
@@ -255,39 +267,128 @@ int main(int argc, char* argv[]) {
     mH = atof(argv[3]),
     BR = atof(argv[4]);
 
-  vector<string> features = {
-    "pt_l1"  , "eta_l1"  , "phi_l1"  , "e_l1"  ,
-    "pt_l2"  , "eta_l2"  , "phi_l2"  , "e_l2"  ,
-    "pt_tau" , "eta_tau" , "phi_tau" , "e_tau" ,
-    "pt_b1"  , "eta_b1"  , "phi_b1"  , "e_b1"  ,
-    "MET", "mH", "mC"
+  vector<string> featureNames = {
+    "mH", "mC"
   };
+  map<string, double> features;
 
-  ofstream f_features_signal("/tmp/"+signal_process+"_features.txt");
-  ofstream f_features_bg1("/tmp/tttautau_"+signal_process+"_features.txt");
-  auto write = [&] (ofstream& f) {
-    for (int i=0; i < features.size(); i++){
-        f << features[i];
-        if (i != features.size() - 1) f << '\t';
-        else f << endl;
-    }
-  };
-
-  write(f_features_signal);
-  write(f_features_bg1);
 
   double 
     tan_beta = 1.5,
-    xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
+    signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
+
+  /* TFile* observables = new TFile((signal_process+"_observables.root").c_str(), "recreate"); */
+  TTree signal_tree("Signal", "");
+  TTree background_tree("Background", "");
+
+
+  for (int i=0; i < featureNames.size(); i++){
+    features[featureNames[i]] = 0.;
+    signal_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
+    background_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
+  }
 
   vector<vector<int>> counters = {
-    run_analysis(signal_process, cutNames, f_features_signal, mC, mH),
-    run_analysis("tttautau", cutNames, f_features_bg1, mC, mH)
+    run_analysis(signal_process, cutNames, features, &signal_tree, mC, mH),
+    run_analysis("tttautau", cutNames, features, &background_tree, mC, mH)
   };
 
-  double significance = calculate_significance(counters, xsection);
-  f_features_signal.close();
-  f_features_bg1.close();
+  double significance = calculate_significance(counters, signal_xsection);
+
+  TMVA::Factory* factory = new TMVA::Factory("TMVAClassification", 
+    "!V:Silent:Color:!DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification");
+
+  TMVA::DataLoader* dataloader = new TMVA::DataLoader();
+
+  for (auto featureName : featureNames) {
+    dataloader->AddVariable(featureName);
+  }
+  dataloader->AddSignalTree(&signal_tree);
+  dataloader->AddBackgroundTree(&background_tree);
+
+  dataloader->PrepareTrainingAndTestTree("", "",
+    "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
+
+  factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG",
+          "!H"
+          ":!V"
+          ":NTrees=1000"
+          ":BoostType=Grad"
+          ":Shrinkage=0.30"
+          ":UseBaggedBoost"
+          ":BaggedSampleFraction=0.6"
+          ":SeparationType=GiniIndex"
+          ":nCuts=20"
+          ":MaxDepth=3" );
+
+  factory->TrainAllMethods();
+  factory->TestAllMethods();
+  /* factory->EvaluateAllMethods(); */
+  TMVA::IMethod* imethod = factory->GetMethod("default", "BDTG");
+  TMVA::MethodBase* method = dynamic_cast<TMVA::MethodBase*> (imethod);
+  TMVA::DataSet* dataset = method->Data();
+
+  TTree* testTree = dataset->GetTree(TMVA::Types::kTesting);
+
+  float bdtout;
+  char type;
+
+  testTree->SetBranchAddress("BDTG",&bdtout);
+  testTree->SetBranchAddress("className",&type);
+
+  // Get total signal and background entries
+  int 
+    nS_total = 0,
+    nB_total = 0,
+    nS_original = counters[0][0],
+    nB_original = counters[1][0],
+    nS_after_preselection = counters[0][7],
+    nB_after_preselection = counters[1][7],
+    nS_after_bdt_cut, nB_after_bdt_cut;
+
+  double 
+    cutoff=-10,
+    luminosity = 3000,
+    bg_xsection = 95.71,
+    signal_xsection_after_preselection,
+    bg_xsection_after_preselection,
+    signal_xsection_after_bdt_cut,
+    bg_xsection_after_bdt_cut,
+    test_sig,
+    sig_from_tmva = 0;
+
+
+  for (int j=0; j < 200; j++){
+
+    nS_after_bdt_cut = 0;
+    nB_after_bdt_cut = 0;
+
+    for (int i = 0; i < testTree->GetEntries(); i++){
+      testTree->GetEntry(i);
+      if (type=='S') {
+          nS_total++;
+          if (bdtout > cutoff) nS_after_bdt_cut++;
+      }
+      else {
+          nB_total++;
+          if (bdtout > cutoff) nB_after_bdt_cut++;
+      }
+    }
+
+    if (nB_after_bdt_cut < 3 ) nB_after_bdt_cut = 3;
+
+    signal_xsection_after_preselection = signal_xsection*nS_after_preselection/nS_original;
+    bg_xsection_after_preselection = bg_xsection * nB_after_preselection/nB_original;
+    
+    signal_xsection_after_bdt_cut = signal_xsection_after_preselection*((double)nS_after_bdt_cut/nS_total);
+    bg_xsection_after_bdt_cut = bg_xsection_after_preselection*((double)nB_after_bdt_cut/nB_total);
+    
+    test_sig = sqrt(luminosity)*signal_xsection_after_bdt_cut/sqrt(bg_xsection_after_bdt_cut);
+    sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva;
+    cutoff+=0.1;
+  }
+
+  cout << significance << " " << sig_from_tmva << endl; 
 
   return 0;
 }
