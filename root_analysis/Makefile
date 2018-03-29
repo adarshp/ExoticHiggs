@@ -31,7 +31,13 @@ CXXLIBS       += $(DELPHESLIBS)
 
 SRC=analyze.cpp cHtb_xsection.cpp
 
-all: analyze
+all: analyze make_histograms
+
+make_histograms: make_histograms.o
+	$(CXX) $(CXXFLAGS) $^ $(CXXLIBS) -o $@
+
+make_histograms.o: make_histograms.cpp
+	$(CXX) $(CXXFLAGS) -c $<
 
 analyze: analyze.o cHtb_xsection.o
 	$(CXX) $(CXXFLAGS) $^ $(CXXLIBS) -o $@
@@ -40,3 +46,5 @@ analyze.o: analyze.cpp cHtb_xsection.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 cHtb_xsection.o: cHtb_xsection.h
+
+cHtb_xsection: cHtb_xsection.o

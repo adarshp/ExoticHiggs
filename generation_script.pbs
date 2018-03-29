@@ -8,7 +8,7 @@
 #PBS -l walltime=24:0:0
 
 # Script for generating events on the cluster.
-# Usage: generation_script <array_id> <random_seed>
+# Usage: generation_script <array_id>
 
 date
 

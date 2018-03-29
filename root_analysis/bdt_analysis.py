@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
@@ -6,74 +7,56 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-train_sets = {}; test_sets = {}
 
 plt.style.use('ggplot')
+
 def get_data(process):
-    return pd.read_table(process+'/features.txt')
-
-def get_train_test_data(process, train_size):
-    df = pd.read_table(process+'/features.txt',
+    return pd.read_table('/tmp/'+process+'_features.txt',
          usecols= [
-            'pt_l1',
-            'eta_l1',
-            'phi_l1',
-            'e_l1',
+            "pt_l1"  , "eta_l1"  , "phi_l1"  , "e_l1"  ,
+            "pt_l2"  , "eta_l2"  , "phi_l2"  , "e_l2"  ,
+            "pt_tau" , "eta_tau" , "phi_tau" , "e_tau" ,
+            "pt_b1"  , "eta_b1"  , "phi_b1"  , "e_b1"  ,
+            "MET", "mH", "mC"
+        ])
 
-            'pt_l2',
-            'eta_l2',
-            'phi_l2',
-            'e_l2',
+def calculate_significance(process, train_size, train_sets, test_sets):
+    train_sets = {}
+    test_sets = {}
 
-            'pt_tau',
-            'eta_tau',
-            'phi_tau',
-            'e_tau',
+    bgs = ['tttautau']
+    processes = [process] + bgs
 
-            'pt_b1',
-            'eta_b1',
-            'phi_b1',
-            'e_b1',
+    train_sets[process], test_sets[process] = train_test_split(get_data(process))
+    train_sets['tttautau'], test_sets['tttautau'] = train_test_split(get_data('tttautau'),
+                                                                 train_size=0.3)
 
-            'MET',
-            'mH',
-            'mC',
-            ])
-    train_sets[process], test_sets[process] = train_test_split(df, train_size=train_size)
+    processes = [process, 'tttautau']
+    X_train = pd.concat([train_sets[p] for p in processes])
+    X_test = pd.concat([test_sets[p] for p in processes])
 
-bgs = ['tt_fully_leptonic_including_taus', 'tt_semileptonic_including_taus']
-processes = ['Signal'] + bgs
+    y_train_signal = [np.ones(train_sets[process].shape[0])]
+    y_train_bgs = [np.zeros(train_sets[bg].shape[0]) for bg in bgs]
+    y_train = np.concatenate(tuple(y_train_signal+y_train_bgs))
 
-train_sets['Signal'], test_sets['Signal'] = train_test_split(get_data('Signal'))
-train_sets['tt_fully_leptonic_including_taus'], test_sets['tt_fully_leptonic_including_taus'] = train_test_split(get_data('tt_fully_leptonic_including_taus'), train_size=0.3)
-train_sets['tt_semileptonic_including_taus'], test_sets['tt_semileptonic_including_taus'] = train_test_split(get_data('tt_semileptonic_including_taus'), train_size=0.3)
+    y_test_signal = [np.ones(test_sets[process].shape[0])]
+    y_test_bgs = [np.zeros(test_sets[bg].shape[0]) for bg in bgs]
+    y_test = np.concatenate(tuple(y_test_signal+y_test_bgs))
 
-print(train_sets['Signal'])
-X_train = pd.concat([train_sets[p] for p in processes])
-X_test = pd.concat([test_sets[p] for p in processes])
+    clf = GradientBoostingClassifier()
+    clf.fit(X_train, y_train)
 
-y_train_signal = [np.ones(train_sets['Signal'].shape[0])]
-y_train_bgs = [np.zeros(train_sets[bg].shape[0]) for bg in bgs]
-y_train = np.concatenate(tuple(y_train_signal+y_train_bgs))
+    def get_decisions(p):
+        return clf.decision_function(test_sets[p])
 
-y_test_signal = [np.ones(test_sets['Signal'].shape[0])]
-y_test_bgs = [np.zeros(test_sets[bg].shape[0]) for bg in bgs]
-y_test = np.concatenate(tuple(y_test_signal+y_test_bgs))
+    def apply_cut(decisions, cutoff):
+        return [x for x in decisions if x > cutoff]
+        
+    decisions={}
 
-clf = GradientBoostingClassifier(
-                        n_estimators = 1000,
-                        learning_rate = 0.025,
-                        verbose = 3,
-                        )
-clf.fit(X_train, y_train)
+    for p in [process, 'tttautau']:
+        decisions[p] = clf.decision_function(test_sets[p]) 
 
-decisions={}
-fig, ax = plt.subplots()
 
-for p in ['Signal', 'tt_fully_leptonic_including_taus']:
-    decisions[p] = clf.decision_function(test_sets[p]) 
-    ax.hist(decisions[p], label=p, alpha = 0.4, normed=True)
-
-ax.legend()
-plt.savefig('bdt_histo.pdf')
-
+if __name__ == '__main__':
+    get_train_test_data(sys.argv[1], 0.75, train_sets, test_sets)

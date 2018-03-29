@@ -61,7 +61,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 
     // Declare containers
     vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
-    vector<Electron*> electrons;
     vector<Candidate> leptons;
 
     // Collect jets
@@ -149,19 +148,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       PseudoJet W_leptonic(met_px+l1_px,met_py+l1_py,pz+l1_pz,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
 
-    /* auto write_momentum_components = [&] (TLorentzVector momentum) { */
-    /*     features << momentum.Pt()  << '\t' */
-    /*                << momentum.Eta() << '\t' */
-    /*                << momentum.Phi() << '\t' */
-    /*                << momentum.E()   << '\t'; */
-    /* }; */
-
-    /* write_momentum_components(leptons[0].Momentum); */
-    /* write_momentum_components(leptons[1].Momentum); */
-    /* write_momentum_components(tau_jets[0]->P4()); */
-    /* write_momentum_components(b_jets[0]->P4()); */
-
-
     PseudoJet w_candidates[2]={W_hadronic, W_leptonic};
     double mt=174.0;
     delta=10000.0;
@@ -191,13 +177,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
       charged_higgs.reset_momentum((H_candidate+W_hadronic).four_mom());
 
 
-    /* f_features   << W_hadronic.m() << '\t' */
-    /*              << W_leptonic.m() << '\t' */
-    /*              << met->MET        << '\t' */         
-    /*              << H_candidate.m() << '\t' */
-    /*              << charged_higgs.m() */
-    /*              << endl; */
-
     // Mass cuts
 
     delta = 0.4;
@@ -213,6 +192,11 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
             < H_candidate.m() - mH 
             < (mH/EH)*(charged_higgs.m() - mC + w_tautauW)))) continue;
     counters[j]++; j++;
+    features["MET"] = met->MET;
+    features["pt_j1"] = untagged_jets[0]->PT;
+    features["pt_l1"] = leptons[0].Momentum.Pt();
+    features["pt_tau"] = tau_jets[0]->PT;
+    features["pt_b1"] = b_jets[0]->PT;
     features["mC"] = charged_higgs.m();
     features["mH"] = H_candidate.m();
     tree->Fill();
@@ -220,6 +204,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
   progressBar.Finish();
 }
 
+// Run the analysis for a given signal or background process
 vector<int> run_analysis(string process, vector<string> cutNames,
         map<string, double>& features, TTree* tree, double mC, double mH) {
     vector<int> counters;
@@ -231,13 +216,14 @@ vector<int> run_analysis(string process, vector<string> cutNames,
     return counters;
 }
 
+// Calculate the cut-and-count significance
 double calculate_significance(vector<vector<int>> counters, double signal_xsection) {
     double 
         luminosity = 3000.0,
         tttautau_xsection = 95.71,
         n_tttautau = counters[1][counters[1].size()-1];
 
-    n_tttautau = (n_tttautau == 0)?(n_tttautau=3):(n_tttautau=n_tttautau);
+    n_tttautau = (n_tttautau < 3)?(n_tttautau=3):(n_tttautau=n_tttautau);
 
     double
         xs_signal = ((double) counters[0][counters[0].size()-1]/counters[0][0])*signal_xsection,
@@ -249,6 +235,7 @@ double calculate_significance(vector<vector<int>> counters, double signal_xsecti
 
 int main(int argc, char* argv[]) {
 
+  // Specify the names of the cuts
   vector<string> cutNames = {
     "Initial",
     "2 leptons",
@@ -261,38 +248,44 @@ int main(int argc, char* argv[]) {
   };
 
 
+  // Get the signal benchmark point from command line arguments
   string signal_process = argv[1];
   double 
     mC = atof(argv[2]),
     mH = atof(argv[3]),
     BR = atof(argv[4]);
 
+  // Declare the feature names, create a map with keys corresponding to them
   vector<string> featureNames = {
+    "MET", "pt_j1", "pt_l1", "pt_tau", "pt_b1",
     "mH", "mC"
   };
   map<string, double> features;
 
 
+  // Set tan beta and the signal cross section
   double 
     tan_beta = 1.5,
     signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
 
-  /* TFile* observables = new TFile((signal_process+"_observables.root").c_str(), "recreate"); */
   TTree signal_tree("Signal", "");
   TTree background_tree("Background", "");
 
 
+  // Create a branch for each feature on the signal tree and each background tree
   for (int i=0; i < featureNames.size(); i++){
     features[featureNames[i]] = 0.;
     signal_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
     background_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
   }
 
+  // Run analysis and store the counters for the cut flow
   vector<vector<int>> counters = {
     run_analysis(signal_process, cutNames, features, &signal_tree, mC, mH),
     run_analysis("tttautau", cutNames, features, &background_tree, mC, mH)
   };
 
+  // Calculate cut-and-count significance
   double significance = calculate_significance(counters, signal_xsection);
 
   TMVA::Factory* factory = new TMVA::Factory("TMVAClassification", 
@@ -300,15 +293,20 @@ int main(int argc, char* argv[]) {
 
   TMVA::DataLoader* dataloader = new TMVA::DataLoader();
 
+  // Add features
   for (auto featureName : featureNames) {
     dataloader->AddVariable(featureName);
   }
+
+  // Add signal and background trees
   dataloader->AddSignalTree(&signal_tree);
   dataloader->AddBackgroundTree(&background_tree);
 
+  // Do the train-test split
   dataloader->PrepareTrainingAndTestTree("", "",
     "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
 
+  // Initialize Boosted Decision Tree Classifier
   factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG",
           "!H"
           ":!V"
@@ -321,9 +319,11 @@ int main(int argc, char* argv[]) {
           ":nCuts=20"
           ":MaxDepth=3" );
 
+  // Perform training and testing
   factory->TrainAllMethods();
   factory->TestAllMethods();
-  /* factory->EvaluateAllMethods(); */
+
+  // Get testing results
   TMVA::IMethod* imethod = factory->GetMethod("default", "BDTG");
   TMVA::MethodBase* method = dynamic_cast<TMVA::MethodBase*> (imethod);
   TMVA::DataSet* dataset = method->Data();
@@ -358,6 +358,9 @@ int main(int argc, char* argv[]) {
     sig_from_tmva = 0;
 
 
+  // Loop over different values of the bdt response cutoff, pick the maximum
+  // significance achieved.
+
   for (int j=0; j < 200; j++){
 
     nS_after_bdt_cut = 0;
@@ -367,15 +370,18 @@ int main(int argc, char* argv[]) {
       testTree->GetEntry(i);
       if (type=='S') {
           nS_total++;
-          if (bdtout > cutoff) nS_after_bdt_cut++;
+          if (bdtout > cutoff) 
+             nS_after_bdt_cut++;
       }
       else {
           nB_total++;
-          if (bdtout > cutoff) nB_after_bdt_cut++;
+          if (bdtout > cutoff) 
+            nB_after_bdt_cut++;
       }
     }
 
-    if (nB_after_bdt_cut < 3 ) nB_after_bdt_cut = 3;
+    if (nB_after_bdt_cut < 3 ) 
+      nB_after_bdt_cut = 3;
 
     signal_xsection_after_preselection = signal_xsection*nS_after_preselection/nS_original;
     bg_xsection_after_preselection = bg_xsection * nB_after_preselection/nB_original;

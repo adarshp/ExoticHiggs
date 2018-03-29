@@ -1,31 +1,26 @@
 from __future__ import division
 import os, glob
 import sys
-sys.path.insert(0,'/extra/adarsh/clusterpheno')
+sys.path.insert(0,'/home/u13/adarsh/clusterpheno')
 from clusterpheno.Process import Process
-from clusterpheno.helpers import cd, modify_file
+from clusterpheno.helpers import cd, modify_file, do_parallel
 import subprocess as sp
 import numpy as np
 import shutil as sh
 import gzip
 import pandas as pd
+from tqdm import tqdm
+from ConfigParser import SafeConfigParser
 
 def get_benchmark_points(filename):
     df = pd.read_csv(filename, delim_whitespace=True, dtype = 'str')
     return df.iterrows()
+
 # Get benchmark points from a text file
 BP_IIB = get_benchmark_points('benchmark_planes/BP_IIB_tb_1.5.txt')
 
 # Define a collection of signal processes corresponding to the
 # Benchmark point
-
-def get_xsection(filename):
-    """ Get matched cross section from a .lhco.gz file"""
-    with gzip.open(filename, 'r') as f:
-        lines = f.readlines()
-        myline = [line for line in lines if 'Integrated weight' in line][0]
-        xsection = float(myline.split()[-1])
-        return xsection
 
 class TwoHiggsDoubletModelProcess(Process):
 
@@ -35,7 +30,7 @@ class TwoHiggsDoubletModelProcess(Process):
         Process.__init__(self, name, '2HDM', decay_channel, mg5_generation_syntax, energy, self.make_index()) 
 
     def make_index(self):
-        return '_'.join(["mH", str(int(float(self.bp['mH']))), "mC", str(int(float(self.bp['mC'])))])
+        return '_'.join(["mC", str(float(self.bp['mC'])), "mH", str(float(self.bp['mH']))])
 
     def set_parameters(self):
         def set_2HDM_params(line):
@@ -50,23 +45,12 @@ class TwoHiggsDoubletModelProcess(Process):
             elif "Whc" in words: return "DECAY  37 {} # Whc\n".format(self.bp['wC'])
             else: return line
 
-        with cd(self.directory):
-            modify_file('Cards/param_card.dat', set_2HDM_params)
+        modify_file('Cards/param_card.dat', set_2HDM_params)
 
-    def get_xsection(self):
-        with open(self.directory+'/mean_xsection.txt','r') as f:
-            return float(f.readlines()[0])
 
-    def get_xsection_from_LHCO_files(self):
-        with cd(self.directory):
-            filenames = glob.glob('Events/*/*.lhco.gz')
-            mean_xsection = np.mean(map(get_xsection,filenames))
-            with open('mean_xsection.txt','w') as f:
-                f.write(str(mean_xsection))
-
-Hc_HW_tautau_ll_14_TeV_collection = [TwoHiggsDoubletModelProcess(
-        name = 'Hc_HW',
-        decay_channel = 'tautau_ll',
+Hc_HW_tautau_ll_100_TeV_collection = [TwoHiggsDoubletModelProcess(
+        name = 'C_HW',
+        decay_channel = 'tataW',
         mg5_generation_syntax = """\
         define hc = h+ h-
         define w = w+ w- 
@@ -80,3 +64,55 @@ Hc_HW_tautau_ll_14_TeV_collection = [TwoHiggsDoubletModelProcess(
         energy = 100,
         benchmark_point = bp[1],
     ) for bp in list(BP_IIB)]
+
+def create_signal_directory(process):
+    """ Create madgraph directory for the process"""
+    cards_dir = '/home/u13/adarsh/ExoticHiggs/Cards'
+    proc_card = process.index+'.dat'
+    with cd(cards_dir+'/mg5_proc_cards/'):
+        sh.copy('charged_higgs.dat', 
+                proc_card)
+        modify_file(proc_card, lambda line: line.replace('charged_higgs', process.index))
+
+    proc_collection_dir = '/xdisk/adarsh/C_HW_tataW/'
+    with cd(proc_collection_dir):
+        sp.call(['/home/u13/adarsh/MG5_aMC_v2_6_0/bin/mg5',
+                cards_dir+'/mg5_proc_cards/'+proc_card],
+                stdout=open(os.devnull, 'w')
+                )
+        os.remove(cards_dir+'/mg5_proc_cards/'+proc_card)
+
+def copy_cards_and_set_parameters(process):
+    """ Copy cards and set parameters for the process """
+    with cd('/xdisk/adarsh/C_HW_tataW/'+process.index):
+        process.set_parameters()
+        sh.copy(cards_dir+'/delphes_cards/delphes_card_with_top_tagging.tcl',
+                'Cards/delphes_card.dat')
+        sh.copy(cards_dir+'/run_cards/run_card.dat',
+                'Cards/run_card.dat')
+            
+
+parser = SafeConfigParser()
+parser.read('config.ini')
+
+def write_pbs_script(process):
+    """ Write a PBS script to the signal bp directory """
+    with open(parser.get('PBS Templates', 'generate_script'), 'r') as f:
+        string = f.read() 
+
+    with cd(process.directory):
+        nruns = 1
+        with open('generate_events.pbs', 'w') as f:
+            stringify = lambda x: str(int(float(x)))
+            jobname = stringify(process.bp['mC'])+'_'+stringify(process.bp['mH'])
+            f.write(string.format(jobname = jobname,
+                                  email = parser.get('Cluster', 'email'),
+                                  group_list = parser.get('Cluster', 'group_list'),
+                                  nruns = str(nruns),
+                                  cput = str(28),
+                                  walltime = str(1),
+                                  mg5_process_dir = process.directory))
+
+myproc = filter(lambda x: float(x.bp['mC']) == 1016.2776 
+                                    and float(x.bp['mH']) == 725.09,
+                    Hc_HW_tautau_ll_100_TeV_collection)[0]
