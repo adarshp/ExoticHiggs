@@ -112,8 +112,3 @@ def write_pbs_script(process):
                                   cput = str(28),
                                   walltime = str(1),
                                   mg5_process_dir = process.directory))
-
-if __name__ == '__main__':
-    myproc = filter(lambda x: float(x.bp['mC']) == 1016.2776 
-                                    and float(x.bp['mH']) == 725.09,
-                    Hc_HW_tautau_ll_100_TeV_collection)[0]
