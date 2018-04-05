@@ -18,6 +18,7 @@ def get_benchmark_points(filename):
 
 # Get benchmark points from a text file
 BP_IIB = get_benchmark_points('benchmark_planes/BP_IIB_tb_1.5.txt')
+BP_IIB_deltaM200 = get_benchmark_points('benchmark_planes/BP_IIB_deltaM200.txt')
 
 # Define a collection of signal processes corresponding to the
 # Benchmark point
@@ -64,6 +65,23 @@ Hc_HW_tautau_ll_100_TeV_collection = [TwoHiggsDoubletModelProcess(
         energy = 100,
         benchmark_point = bp[1],
     ) for bp in list(BP_IIB)]
+
+Hc_HW_tautau_ll_100_TeV_deltaM_200_collection = [TwoHiggsDoubletModelProcess(
+        name = 'C_HW',
+        decay_channel = 'tataW',
+        mg5_generation_syntax = """\
+        define hc = h+ h-
+        define w = w+ w- 
+        define tt = t t~
+        define bb = b b~
+        define ll = l+ l-
+        define vv = vl vl~
+        generate g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > ll vv ), (tt > bb w, w > j j)
+        add process g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > j j ), (tt > bb w, w > ll vv)
+        """,
+        energy = 100,
+        benchmark_point = bp[1],
+    ) for bp in list(BP_IIB_deltaM200)]
 
 def create_signal_directory(process):
     """ Create madgraph directory for the process"""
