@@ -99,12 +99,3 @@ def create_signal_directory(process):
                 stdout=open(os.devnull, 'w')
                 )
         os.remove(cards_dir+'/mg5_proc_cards/'+proc_card)
-
-def copy_cards_and_set_parameters(process):
-    """ Copy cards and set parameters for the process """
-    with cd('/xdisk/adarsh/C_HW_tataW/'+process.index):
-        process.set_parameters()
-        sh.copy(cards_dir+'/delphes_cards/delphes_card_with_top_tagging.tcl',
-                'Cards/delphes_card.dat')
-        sh.copy(cards_dir+'/run_cards/run_card.dat',
-                'Cards/run_card.dat')
