@@ -83,19 +83,3 @@ Hc_HW_tautau_ll_100_TeV_deltaM_200_collection = [TwoHiggsDoubletModelProcess(
         benchmark_point = bp[1],
     ) for bp in list(BP_IIB_deltaM200)]
 
-def create_signal_directory(process):
-    """ Create madgraph directory for the process"""
-    cards_dir = '/home/u13/adarsh/ExoticHiggs/Cards'
-    proc_card = process.index+'.dat'
-    with cd(cards_dir+'/mg5_proc_cards/'):
-        sh.copy('charged_higgs.dat', 
-                proc_card)
-        modify_file(proc_card, lambda line: line.replace('charged_higgs', process.index))
-
-    proc_collection_dir = '/xdisk/adarsh/C_HW_tataW/'
-    with cd(proc_collection_dir):
-        sp.call(['/home/u13/adarsh/MG5_aMC_v2_6_0/bin/mg5',
-                cards_dir+'/mg5_proc_cards/'+proc_card],
-                stdout=open(os.devnull, 'w')
-                )
-        os.remove(cards_dir+'/mg5_proc_cards/'+proc_card)
