@@ -90,25 +90,3 @@ def copy_cards_and_set_parameters(process):
                 'Cards/delphes_card.dat')
         sh.copy(cards_dir+'/run_cards/run_card.dat',
                 'Cards/run_card.dat')
-            
-
-parser = SafeConfigParser()
-parser.read('config.ini')
-
-def write_pbs_script(process):
-    """ Write a PBS script to the signal bp directory """
-    with open(parser.get('PBS Templates', 'generate_script'), 'r') as f:
-        string = f.read() 
-
-    with cd(process.directory):
-        nruns = 1
-        with open('generate_events.pbs', 'w') as f:
-            stringify = lambda x: str(int(float(x)))
-            jobname = stringify(process.bp['mC'])+'_'+stringify(process.bp['mH'])
-            f.write(string.format(jobname = jobname,
-                                  email = parser.get('Cluster', 'email'),
-                                  group_list = parser.get('Cluster', 'group_list'),
-                                  nruns = str(nruns),
-                                  cput = str(28),
-                                  walltime = str(1),
-                                  mg5_process_dir = process.directory))
