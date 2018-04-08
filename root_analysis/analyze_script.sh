@@ -17,13 +17,13 @@ done
 echo "mC mH significance bdt_significance" > significances.txt
 
 analyze_bp() {
-    read mC mH BR <<< $1
+    read mC mH tb BR_C_HW BR_H_tata <<< $1
     local bp_dirname="mC_$mC""_mH_$mH"
     local target_dir=/rsgrps/shufang/Events/C_HW_tataW/$bp_dirname
     local input_list=$bp_dirname"_input_list.txt" 
 
     ls -f $target_dir/*.root > $input_list 
-    read sig bdt_sig <<< `./analyze $bp_dirname $mC $mH $BR`
+    read sig bdt_sig <<< `./analyze $bp_dirname $mC $mH $tb $BR_C_HW $BR_H_tata`
     echo $mC $mH $sig $bdt_sig >> significances.txt
     rm $input_list
 }
@@ -31,7 +31,8 @@ analyze_bp() {
 export -f analyze_bp
 
 benchmark_plane=$HOME/ExoticHiggs/benchmark_planes/BP_IIB_tb_1.5.txt
-cat $benchmark_plane | awk 'NR>1{print $3, $1, $11}' | parallel --bar -k -j 28 analyze_bp {}
+cat $benchmark_plane | awk 'NR>1{print $3, $1, $4, $11, $13}' \
+                     | parallel --bar -k -j 28 analyze_bp {}
 
 # for single benchmark point:
 # cat $benchmark_plane | head -n 2 |  awk 'NR>1{print $3, $1, $11}' | parallel -j 1 analyze_bp {}

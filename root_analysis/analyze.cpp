@@ -251,9 +251,11 @@ int main(int argc, char* argv[]) {
   // Get the signal benchmark point from command line arguments
   string signal_process = argv[1];
   double 
-    mC = atof(argv[2]),
-    mH = atof(argv[3]),
-    BR = atof(argv[4]);
+    mC        = atof(argv[2]),
+    mH        = atof(argv[3]),
+    tan_beta  = atof(argv[4]),
+    BR_C_HW   = atof(argv[5]);
+    BR_H_tata = atof(argv[6]);
 
   // Declare the feature names, create a map with keys corresponding to them
   vector<string> featureNames = {
@@ -265,8 +267,7 @@ int main(int argc, char* argv[]) {
 
   // Set tan beta and the signal cross section
   double 
-    tan_beta = 1.5,
-    signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
+    signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)*BR_C_HW*BR_H_tata;
 
   TTree signal_tree("Signal", "");
   TTree background_tree("Background", "");
