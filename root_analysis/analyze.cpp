@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     mC        = atof(argv[2]),
     mH        = atof(argv[3]),
     tan_beta  = atof(argv[4]),
-    BR_C_HW   = atof(argv[5]);
+    BR_C_HW   = atof(argv[5]),
     BR_H_tata = atof(argv[6]);
 
   // Declare the feature names, create a map with keys corresponding to them
