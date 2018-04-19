@@ -1,5 +1,8 @@
 #include <iostream>
 #include <stdio.h>
+#include <fstream>
+#include <vector>
+#include <string>
 
 #include "TROOT.h"
 #include "TH1.h"
@@ -24,10 +27,8 @@
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
 #include "external/ExRootAnalysis/ExRootProgressBar.h"
 #include "external/ExRootAnalysis/ExRootUtilities.h"
-#include <fstream>
 #include "cHtb_xsection.h"
 
-using namespace std;
 using namespace fastjet;
 
 template <class T>
@@ -38,8 +39,8 @@ Candidate make_candidate(T* delphes_particle) {
   return candidate;
 }
 
-void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
-        map<string, double>& features, TTree* tree, double mC, double mH) {
+void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
+        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
@@ -60,8 +61,8 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
     met = (MissingET*) branchMissingET->At(0);
 
     // Declare containers
-    vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
-    vector<Candidate> leptons;
+    std::vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
+    std::vector<Candidate> leptons;
 
     // Collect jets
     for (int i = 0; i < branchJet->GetEntriesFast(); i++) {
@@ -205,9 +206,9 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
 }
 
 // Run the analysis for a given signal or background process
-vector<int> run_analysis(string process, vector<string> cutNames,
-        map<string, double>& features, TTree* tree, double mC, double mH) {
-    vector<int> counters;
+std::vector<int> run_analysis(std::string process, std::vector<std::string> cutNames,
+        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
+    std::vector<int> counters;
     for (auto cut : cutNames) counters.push_back(0);
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
@@ -217,7 +218,7 @@ vector<int> run_analysis(string process, vector<string> cutNames,
 }
 
 // Calculate the cut-and-count significance
-double calculate_significance(vector<vector<int>> counters, double signal_xsection) {
+double calculate_significance(std::vector< std::vector<int>> counters, double signal_xsection) {
     double 
         luminosity = 3000.0,
         tttautau_xsection = 95.71,
@@ -233,10 +234,88 @@ double calculate_significance(vector<vector<int>> counters, double signal_xsecti
     return sig;
 }
 
+// Calculate the TMVA significance
+double calculate_tmva_significance(TTree* testTree, std::vector< std::vector<int> > counters, double signal_xsection){
+    float bdtout;
+    char type;
+
+    testTree->SetBranchAddress("BDTG",&bdtout);
+    testTree->SetBranchAddress("className",&type);
+
+    // Get total signal and background entries
+    int 
+        nS_total = 0,
+        nB_total = 0,
+        nS_original = counters[0][0],
+        nB_original = counters[1][0],
+        nS_after_preselection = counters[0][7],
+        nB_after_preselection = counters[1][7],
+        nS_after_bdt_cut, nB_after_bdt_cut;
+
+    double 
+        cutoff=-10,
+        luminosity = 3000,
+        bg_xsection = 95.71,
+        signal_xsection_after_preselection,
+        bg_xsection_after_preselection,
+        signal_xsection_after_bdt_cut,
+        bg_xsection_after_bdt_cut,
+        test_sig,
+        sig_from_tmva = 0;
+
+
+    // Loop over different values of the bdt response cutoff, pick the maximum
+    // significance achieved.
+
+    for (int j=0; j < 200; j++){
+
+        nS_after_bdt_cut = 0;
+        nB_after_bdt_cut = 0;
+
+        for (int i = 0; i < testTree->GetEntries(); i++){
+            testTree->GetEntry(i);
+            if (type=='S') {
+                nS_total++;
+                if (bdtout > cutoff) 
+                    nS_after_bdt_cut++;
+            }
+            else {
+                nB_total++;
+                if (bdtout > cutoff) 
+                    nB_after_bdt_cut++;
+            }
+        }
+
+        if (nB_after_bdt_cut < 3 ) 
+        nB_after_bdt_cut = 3;
+
+        signal_xsection_after_preselection = signal_xsection*nS_after_preselection/nS_original;
+        bg_xsection_after_preselection = bg_xsection * nB_after_preselection/nB_original;
+        
+        signal_xsection_after_bdt_cut = signal_xsection_after_preselection*((double)nS_after_bdt_cut/nS_total);
+        bg_xsection_after_bdt_cut = bg_xsection_after_preselection*((double)nB_after_bdt_cut/nB_total);
+        
+        test_sig = sqrt(luminosity)*signal_xsection_after_bdt_cut/sqrt(bg_xsection_after_bdt_cut);
+        sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva;
+        cutoff+=0.1;
+    }
+    return sig_from_tmva;
+  }
+
 int main(int argc, char* argv[]) {
 
+  // Get the signal benchmark point from command line arguments
+  std::string signal_process = argv[1];
+  double 
+    mC        = atof(argv[2]),
+    mH        = atof(argv[3]),
+    tan_beta  = atof(argv[4]),
+    BR_C_HW   = atof(argv[5]),
+    BR_H_tata = atof(argv[6]);
+
   // Specify the names of the cuts
-  vector<string> cutNames = {
+
+  std::vector<std::string> cutNames = {
     "Initial",
     "2 leptons",
     "1/2 b-jets",
@@ -247,43 +326,44 @@ int main(int argc, char* argv[]) {
     "2D mass cut"
   };
 
-
-  // Get the signal benchmark point from command line arguments
-  string signal_process = argv[1];
-  double 
-    mC        = atof(argv[2]),
-    mH        = atof(argv[3]),
-    tan_beta  = atof(argv[4]),
-    BR_C_HW   = atof(argv[5]),
-    BR_H_tata = atof(argv[6]);
-
-  // Declare the feature names, create a map with keys corresponding to them
-  vector<string> featureNames = {
-    "MET", "pt_j1", "pt_l1", "pt_tau", "pt_b1",
-    "mH", "mC"
+  // Declare the feature names, create a std::map with keys corresponding to them
+  std::vector<std::string> featureNames = {
+    "MET", 
+    "pt_j1",
+    "pt_l1",
+    "pt_tau",
+    "pt_b1",
+    "mH",
+    "mC"
   };
-  map<string, double> features;
+
+  std::map<std::string, double> features;
 
 
   // Set tan beta and the signal cross section
-  double 
-    signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)*BR_C_HW*BR_H_tata;
+  double signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)*BR_C_HW*BR_H_tata;
 
-  TTree signal_tree("Signal", "");
-  TTree background_tree("Background", "");
+  TTree* signal_tree = new TTree("Signal", "");
+  TTree* background_tree = new TTree("Background", "");
 
 
   // Create a branch for each feature on the signal tree and each background tree
   for (int i=0; i < featureNames.size(); i++){
     features[featureNames[i]] = 0.;
-    signal_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
-    background_tree.Branch(featureNames[i].c_str(), &features[featureNames[i]]);
+    signal_tree->Branch(featureNames[i].c_str(), &features[featureNames[i]]);
+    background_tree->Branch(featureNames[i].c_str(), &features[featureNames[i]]);
   }
 
   // Run analysis and store the counters for the cut flow
-  vector<vector<int>> counters = {
-    run_analysis(signal_process, cutNames, features, &signal_tree, mC, mH),
-    run_analysis("tttautau", cutNames, features, &background_tree, mC, mH)
+  /* std::vector<int> signal_counters = run_analysis(signal_process, cutNames, features, signal_tree, mC, mH); */
+  /* std::vector<int> bg_counters = run_analysis("tttautau", cutNames, features, background_tree, mC, mH); */
+  /* std::vector< std::vector<int> > counters; */
+  /* counters.push_back(signal_counters); */
+  /* counters.push_back(bg_counters); */
+
+  std::vector< std::vector<int> > counters = {
+    run_analysis(signal_process, cutNames, features, signal_tree, mC, mH),
+    run_analysis("tttautau", cutNames, features, background_tree, mC, mH)
   };
 
   // Calculate cut-and-count significance
@@ -300,8 +380,8 @@ int main(int argc, char* argv[]) {
   }
 
   // Add signal and background trees
-  dataloader->AddSignalTree(&signal_tree);
-  dataloader->AddBackgroundTree(&background_tree);
+  dataloader->AddSignalTree(signal_tree);
+  dataloader->AddBackgroundTree(background_tree);
 
   // Do the train-test split
   dataloader->PrepareTrainingAndTestTree("", "",
@@ -318,7 +398,7 @@ int main(int argc, char* argv[]) {
           ":BaggedSampleFraction=0.6"
           ":SeparationType=GiniIndex"
           ":nCuts=20"
-          ":MaxDepth=3" );
+          ":MaxDepth=3");
 
   // Perform training and testing
   factory->TrainAllMethods();
@@ -330,72 +410,10 @@ int main(int argc, char* argv[]) {
   TMVA::DataSet* dataset = method->Data();
 
   TTree* testTree = dataset->GetTree(TMVA::Types::kTesting);
+  double sig_from_tmva = calculate_tmva_significance(testTree, counters, signal_xsection);
 
-  float bdtout;
-  char type;
-
-  testTree->SetBranchAddress("BDTG",&bdtout);
-  testTree->SetBranchAddress("className",&type);
-
-  // Get total signal and background entries
-  int 
-    nS_total = 0,
-    nB_total = 0,
-    nS_original = counters[0][0],
-    nB_original = counters[1][0],
-    nS_after_preselection = counters[0][7],
-    nB_after_preselection = counters[1][7],
-    nS_after_bdt_cut, nB_after_bdt_cut;
-
-  double 
-    cutoff=-10,
-    luminosity = 3000,
-    bg_xsection = 95.71,
-    signal_xsection_after_preselection,
-    bg_xsection_after_preselection,
-    signal_xsection_after_bdt_cut,
-    bg_xsection_after_bdt_cut,
-    test_sig,
-    sig_from_tmva = 0;
-
-
-  // Loop over different values of the bdt response cutoff, pick the maximum
-  // significance achieved.
-
-  for (int j=0; j < 200; j++){
-
-    nS_after_bdt_cut = 0;
-    nB_after_bdt_cut = 0;
-
-    for (int i = 0; i < testTree->GetEntries(); i++){
-      testTree->GetEntry(i);
-      if (type=='S') {
-          nS_total++;
-          if (bdtout > cutoff) 
-             nS_after_bdt_cut++;
-      }
-      else {
-          nB_total++;
-          if (bdtout > cutoff) 
-            nB_after_bdt_cut++;
-      }
-    }
-
-    if (nB_after_bdt_cut < 3 ) 
-      nB_after_bdt_cut = 3;
-
-    signal_xsection_after_preselection = signal_xsection*nS_after_preselection/nS_original;
-    bg_xsection_after_preselection = bg_xsection * nB_after_preselection/nB_original;
-    
-    signal_xsection_after_bdt_cut = signal_xsection_after_preselection*((double)nS_after_bdt_cut/nS_total);
-    bg_xsection_after_bdt_cut = bg_xsection_after_preselection*((double)nB_after_bdt_cut/nB_total);
-    
-    test_sig = sqrt(luminosity)*signal_xsection_after_bdt_cut/sqrt(bg_xsection_after_bdt_cut);
-    sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva;
-    cutoff+=0.1;
-  }
-
-  cout << significance << " " << sig_from_tmva << endl; 
+  std::cout << significance << " " << sig_from_tmva << std::endl; 
 
   return 0;
+
 }
