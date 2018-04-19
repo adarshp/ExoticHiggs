@@ -44,7 +44,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
-    /* *branchFatJet    = treeReader->UseBranch("FatJet"), */
     *branchElectron  = treeReader->UseBranch("Electron"),
     *branchMuon      = treeReader->UseBranch("Muon"),
     *branchMissingET = treeReader->UseBranch("MissingET");
