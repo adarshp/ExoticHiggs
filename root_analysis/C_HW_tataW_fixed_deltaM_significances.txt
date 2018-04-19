@@ -1,0 +1,29 @@
+mC mH significance bdt_significance
+2100 1900 10 0.00895631 0.00895631
+2100 1900 30 0.0312334 0.0312334
+2100 1900 20 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2200 2000 1 1.76936e-05 1.76936e-05
+2100 1900 50 0.038417 0.038417
+2200 2000 10 0.00757947 0.00757947
+2300 2100 5 0.00277803 0.00277803
+2200 2000 5 0.00327402 0.00327402
+2300 2100 1 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2200 2000 20 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2200 2000 30 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2200 2000 50 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2300 2100 10 0.00632252 0.00632252
+2300 2100 50 0.0275831 0.0275831
+2300 2100 30 0.0226271 0.0226271
+2300 2100 20 0.0162874 0.0162874
+2400 2200 5 0.00246026 0.00246026
+2400 2200 1 1.30402e-05 1.30402e-05
+2400 2200 10 0.00571448 0.00571448
+2500 2300 5 [37;41;1m<FATAL> : Trying to read non-existing attribute 'Method' from xml node '[0m ***> abort program execution
+2500 2300 1 1.09531e-05 1.09531e-05
+2400 2200 50 0.0230313 0.0230313
+2400 2200 30 0.0195958 0.0195958
+2400 2200 20 0.0142336 0.0142336
+2500 2300 10 0.00511639 0.00511639
+2500 2300 20 0.012991 0.012991
+2500 2300 30 0.0163575 0.0163575
+2500 2300 50 0.0196796 0.0196796
