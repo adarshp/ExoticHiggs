@@ -40,8 +40,7 @@ Candidate make_candidate(T* delphes_particle) {
 }
 
 void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
-        std::map<std::string, double>& features, TTree* tree, double mC,
-        double mH, double tb) {
+        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
@@ -137,7 +136,10 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
 
       update();
 
-      while(delta<0) { scale -= 0.01; update(); }
+      while(delta<0) {
+          scale -= 0.01;
+          update();
+      }
     
       double  sol1 = (-b+sqrt(delta))/(2*a),
               sol2 = (-b-sqrt(delta))/(2*a),
@@ -147,7 +149,6 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
           sqrt(met_px*met_px+met_py*met_py+pz*pz) + l1_E);
 
     PseudoJet w_candidates[2]={W_hadronic, W_leptonic};
-
     double mt=174.0;
     delta=10000.0;
     int w_ind;
@@ -198,23 +199,20 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
     features["pt_b1"] = b_jets[0]->PT;
     features["mC"] = charged_higgs.m();
     features["mH"] = H_candidate.m();
-    features["tb"] = tb;
     tree->Fill();
   }
   progressBar.Finish();
 }
 
 // Run the analysis for a given signal or background process
-std::vector<int> run_analysis(std::string process,
-                              std::vector<std::string> cutNames,
-                              std::map<std::string, double>& features,
-                              TTree* tree, double mC, double mH, double tb) {
+std::vector<int> run_analysis(std::string process, std::vector<std::string> cutNames,
+        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
     std::vector<int> counters;
     for (auto cut : cutNames) counters.push_back(0);
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
-    AnalyseEvents(treeReader, counters, features, tree, mC, mH, tb);
+    AnalyseEvents(treeReader, counters, features, tree, mC, mH);
     return counters;
 }
 
@@ -310,7 +308,7 @@ int main(int argc, char* argv[]) {
   double 
     mC        = atof(argv[2]),
     mH        = atof(argv[3]),
-    tb        = atof(argv[4]),
+    tan_beta  = atof(argv[4]),
     BR_C_HW   = atof(argv[5]),
     BR_H_tata = atof(argv[6]);
 
@@ -335,15 +333,14 @@ int main(int argc, char* argv[]) {
     "pt_tau",
     "pt_b1",
     "mH",
-    "mC",
-    "tb"
+    "mC"
   };
 
   std::map<std::string, double> features;
 
 
   // Set tan beta and the signal cross section
-  double signal_xsection = MyCrossSection_100TeV_Htb(mC, tb)*BR_C_HW*BR_H_tata;
+  double signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)*BR_C_HW*BR_H_tata;
 
   TTree* signal_tree = new TTree("Signal", "");
   TTree* background_tree = new TTree("Background", "");
@@ -359,8 +356,8 @@ int main(int argc, char* argv[]) {
   // Run analysis and store the counters for the cut flow
 
   std::vector< std::vector<int> > counters = {
-    run_analysis(signal_process, cutNames, features, signal_tree, mC, mH, tb),
-    run_analysis("tttautau", cutNames, features, background_tree, mC, mH, tb)
+    run_analysis(signal_process, cutNames, features, signal_tree, mC, mH),
+    run_analysis("tttautau", cutNames, features, background_tree, mC, mH)
   };
 
   // Calculate cut-and-count significance
