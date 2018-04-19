@@ -357,11 +357,6 @@ int main(int argc, char* argv[]) {
   }
 
   // Run analysis and store the counters for the cut flow
-  /* std::vector<int> signal_counters = run_analysis(signal_process, cutNames, features, signal_tree, mC, mH); */
-  /* std::vector<int> bg_counters = run_analysis("tttautau", cutNames, features, background_tree, mC, mH); */
-  /* std::vector< std::vector<int> > counters; */
-  /* counters.push_back(signal_counters); */
-  /* counters.push_back(bg_counters); */
 
   std::vector< std::vector<int> > counters = {
     run_analysis(signal_process, cutNames, features, signal_tree, mC, mH, tb),
