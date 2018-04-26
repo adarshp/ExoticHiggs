@@ -1,7 +1,7 @@
 from __future__ import division
 import os, glob
 import sys
-sys.path.insert(0,'/home/u13/adarsh/clusterpheno')
+sys.path.insert(0,'/rsgrps/shufang/clusterpheno')
 from clusterpheno.Process import Process
 from clusterpheno.helpers import cd, modify_file, do_parallel
 import subprocess as sp

@@ -364,7 +364,8 @@ int main(int argc, char* argv[]) {
   double significance = calculate_significance(counters, signal_xsection);
 
   TMVA::Factory* factory = new TMVA::Factory("TMVAClassification", 
-    "!V:Silent:Color:!DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification");
+          "!V:Silent:Color:!DrawProgressBar:Transformations=I;D;P;G,D"
+          ":AnalysisType=Classification");
 
   TMVA::DataLoader* dataloader = new TMVA::DataLoader();
 
@@ -409,5 +410,4 @@ int main(int argc, char* argv[]) {
   std::cout << significance << " " << sig_from_tmva << std::endl; 
 
   return 0;
-
 }

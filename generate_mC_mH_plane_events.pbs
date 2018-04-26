@@ -2,7 +2,7 @@
 #PBS -N charged_higgs
 #PBS -M adarsh@email.arizona.edu
 #PBS -W group_list=shufang
-#PBS -q standard
+#PBS -q windfall
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
 #PBS -l cput=672:0:0
 #PBS -l walltime=24:0:0
@@ -20,21 +20,19 @@ $mg5 $HOME/ExoticHiggs/Cards/mg5_proc_cards/charged_higgs.dat
 
 benchmark_plane=$HOME/ExoticHiggs/benchmark_planes/BP_IIB_tb_1.5.txt
 
-read mC mH <<< `head -n $(($PBS_ARRAY_INDEX + 1)) $benchmark_plane \
-                | tail -n 1 \
-                | awk '{print $3, $1}'`
+read mC mH tb <<< `awk -v n=$(($PBS_ARRAY_INDEX + 1)) \
+                'FNR == n {print $3, $1, $4}' $benchmark_plane` 
 
-bp_dirname="mC_$mC""_mH_$mH"
+bp_dirname=mC\_$mC\_mH_$mH\_tb_$tb
 
-mv charged_higgs $bp_dirname
 cd $HOME/ExoticHiggs
-python set_parameters.py $mC $mH
+python set_parameters.py --mC_mH $mC $mH
 
 target_dir=/rsgrps/shufang/Events/C_HW_tataW/$bp_dirname
 mkdir -p $target_dir
 n=`ls $target_dir | wc -l`
 
-cd /tmp/$bp_dirname
+cd /tmp/charged_higgs
 
 sed "s/0       = iseed/$(($n + 1))=iseed/g" -i Cards/run_card.dat
 
@@ -44,6 +42,6 @@ sed "s/0       = iseed/$(($n + 1))=iseed/g" -i Cards/run_card.dat
 generated_sample=Events/run_01/tag_1_delphes_events.root
 cp $generated_sample $target_dir/sample_${n}.root
 
-cd ..; rm -rf $bp_dirname
+cd ..; rm -rf charged_higgs
 date
 exit 0

@@ -20,7 +20,7 @@ def get_XYZ_grid(df, res):
     df = df.replace('None',0)
     x = df['mC']
     y = df['mH']
-    z = df['BR(C>HW)']
+    z = df['BR(C>HW)']*sp.
 
     xmin, xmax = min(df['mC']), max(df['mC'])
     ymin, ymax = min(df['mH']), max(df['mH'])
