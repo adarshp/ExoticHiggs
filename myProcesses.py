@@ -13,19 +13,21 @@ from tqdm import tqdm
 from ConfigParser import SafeConfigParser
 
 def get_benchmark_points(filename):
-    df = pd.read_csv(filename, delim_whitespace=True, dtype = 'str')
+    df = pd.read_csv('benchmark_planes/'+filename,
+                     delim_whitespace=True, dtype = 'str')
     return df.iterrows()
 
 # Get benchmark points from a text file
-BP_IIB = get_benchmark_points('benchmark_planes/BP_IIB_tb_1.5.txt')
-BP_IIB_deltaM200 = get_benchmark_points('benchmark_planes/BP_IIB_deltaM200.txt')
+BP_IIB_mC_mH = get_benchmark_points('BP_IIB_mC_mH.txt')
+BP_IIB_mC_tb = get_benchmark_points('BP_IIB_mC_tb.txt')
+BP_IIB_mC_deltaM = get_benchmark_points('BP_IIB_mC_deltaM.txt')
 
 # Define a collection of signal processes corresponding to the
 # Benchmark point
 
 class TwoHiggsDoubletModelProcess(Process):
 
-    def __init__(self, name, decay_channel, mg5_generation_syntax, energy, benchmark_point):
+    def __init__(self, name, decay_channel, mg5_generation_syntax=None, energy, benchmark_point):
 
         self.bp = benchmark_point
         Process.__init__(self, name, '2HDM', decay_channel, mg5_generation_syntax, energy, self.make_index()) 
@@ -49,37 +51,23 @@ class TwoHiggsDoubletModelProcess(Process):
         modify_file('Cards/param_card.dat', set_2HDM_params)
 
 
-Hc_HW_tautau_ll_100_TeV_collection = [TwoHiggsDoubletModelProcess(
+C_HW_tautau_ll_100_TeV_mC_mH_collection = [TwoHiggsDoubletModelProcess(
         name = 'C_HW',
         decay_channel = 'tataW',
-        mg5_generation_syntax = """\
-        define hc = h+ h-
-        define w = w+ w- 
-        define tt = t t~
-        define bb = b b~
-        define ll = l+ l-
-        define vv = vl vl~
-        generate g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > ll vv ), (tt > bb w, w > j j)
-        add process g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > j j ), (tt > bb w, w > ll vv)
-        """,
         energy = 100,
         benchmark_point = bp[1],
-    ) for bp in list(BP_IIB)]
+    ) for bp in list(BP_IIB_mC_mH)]
 
-Hc_HW_tautau_ll_100_TeV_deltaM_200_collection = [TwoHiggsDoubletModelProcess(
+C_HW_tautau_ll_100_TeV_mC_tb_collection = [TwoHiggsDoubletModelProcess(
         name = 'C_HW',
         decay_channel = 'tataW',
-        mg5_generation_syntax = """\
-        define hc = h+ h-
-        define w = w+ w- 
-        define tt = t t~
-        define bb = b b~
-        define ll = l+ l-
-        define vv = vl vl~
-        generate g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > ll vv ), (tt > bb w, w > j j)
-        add process g g > tt bb hc , ( hc > h2 w , h2 > ta+ ta- , w > j j ), (tt > bb w, w > ll vv)
-        """,
         energy = 100,
         benchmark_point = bp[1],
-    ) for bp in list(BP_IIB_deltaM200)]
+    ) for bp in list(BP_IIB_mC_tb)]
 
+C_HW_tautau_ll_100_TeV_mC_deltaM_collection = [TwoHiggsDoubletModelProcess(
+        name = 'C_HW',
+        decay_channel = 'tataW',
+        energy = 100,
+        benchmark_point = bp[1],
+    ) for bp in list(BP_IIB_mC_deltaM)]
