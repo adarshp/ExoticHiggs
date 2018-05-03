@@ -30,6 +30,7 @@
 #include "cHtb_xsection.h"
 
 using namespace fastjet;
+using namespace std;
 
 template <class T>
 Candidate make_candidate(T* delphes_particle) {
@@ -39,8 +40,8 @@ Candidate make_candidate(T* delphes_particle) {
   return candidate;
 }
 
-void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
-        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
+void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
+        map<string, double>& features, TTree* tree, double mC, double mH) {
 
   TClonesArray 
     *branchJet       = treeReader->UseBranch("Jet"),
@@ -60,8 +61,8 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
     met = (MissingET*) branchMissingET->At(0);
 
     // Declare containers
-    std::vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
-    std::vector<Candidate> leptons;
+    vector<Jet*> jets, untagged_jets, b_jets, tau_jets, top_jets;
+    vector<Candidate> leptons;
 
     // Collect jets
     for (int i = 0; i < branchJet->GetEntriesFast(); i++) {
@@ -205,60 +206,64 @@ void AnalyseEvents(ExRootTreeReader* treeReader, std::vector<int>& counters,
 }
 
 // Run the analysis for a given signal or background process
-std::vector<int> run_analysis(std::string process, std::vector<std::string> cutNames,
-        std::map<std::string, double>& features, TTree* tree, double mC, double mH) {
-    std::vector<int> counters;
+vector<int> run_analysis(string process, vector<string> cutNames,
+        map<string, double>& features, TTree* tree, double mC, double mH) {
+
+    vector<int> counters;
     for (auto cut : cutNames) counters.push_back(0);
     TChain chain("Delphes");
     FillChain(&chain, (process+"_input_list.txt").c_str());
     ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
     AnalyseEvents(treeReader, counters, features, tree, mC, mH);
+
     return counters;
 }
 
 // Calculate the cut-and-count significance
-double calculate_significance(std::vector< std::vector<int>> counters, double signal_xsection) {
+double calculate_significance(vector< vector<int>> cs, double S_prod_xs) {
     double 
-        luminosity = 3000.0,
-        tttautau_xsection = 95.71,
-        n_tttautau = counters[1][counters[1].size()-1];
+        L = 3000.0, // Luminosity
+        B_xs = 95.71,
+        n_B = cs[1][cs[1].size()-1];
 
-    n_tttautau = (n_tttautau < 3)?(n_tttautau=3):(n_tttautau=n_tttautau);
+    n_B = (n_B < 3)?(n_B=3):(n_B=n_B);
 
     double
-        xs_signal = ((double) counters[0][counters[0].size()-1]/counters[0][0])*signal_xsection,
-        xs_tttautau = ((double) n_tttautau/counters[1][0])*tttautau_xsection,
-        sig = (xs_signal/sqrt(xs_tttautau))*sqrt(luminosity);
+        S_xs_after_cuts = ((double) cs[0][cs[0].size()-1]/cs[0][0])*S_prod_xs,
+        B_xs_after_cuts = ((double) n_B/cs[1][0])*B_xs,
+        sig = (S_xs_after_cuts/sqrt(B_xs_after_cuts))*sqrt(L);
 
     return sig;
 }
 
 // Calculate the TMVA significance
-double calculate_tmva_significance(TTree* testTree, std::vector< std::vector<int> > counters, double signal_xsection){
+double calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs,
+                                   double S_xs){
+
     float bdtout;
     char type;
 
     testTree->SetBranchAddress("BDTG",&bdtout);
     testTree->SetBranchAddress("className",&type);
 
-    // Get total signal and background entries
+    // Get total S and background entries
     int 
         nS_total = 0,
         nB_total = 0,
-        nS_original = counters[0][0],
-        nB_original = counters[1][0],
-        nS_after_preselection = counters[0][7],
-        nB_after_preselection = counters[1][7],
+        nS_original = cs[0][0],
+        nB_original = cs[1][0],
+        nS_after_preselection = cs[0][cs[0].size()-1],
+        nB_after_preselection = cs[1][cs[0].size()-1],
         nS_after_bdt_cut, nB_after_bdt_cut;
 
     double 
         cutoff=-10,
-        luminosity = 3000,
-        bg_xsection = 95.71,
-        signal_xsection_after_preselection,
-        bg_xsection_after_preselection,
-        signal_xsection_after_bdt_cut,
-        bg_xsection_after_bdt_cut,
+        L = 3000,
+        B_xs = 95.71,
+        S_xs_after_preselection= S_xs * nS_after_preselection/nS_original,
+        B_xs_after_preselection= B_xs * nB_after_preselection/nB_original,
+        S_xs_after_bdt_cut,
+        B_xs_after_bdt_cut,
         test_sig,
         sig_from_tmva = 0;
 
@@ -275,36 +280,31 @@ double calculate_tmva_significance(TTree* testTree, std::vector< std::vector<int
             testTree->GetEntry(i);
             if (type=='S') {
                 nS_total++;
-                if (bdtout > cutoff) 
-                    nS_after_bdt_cut++;
+                if (bdtout > cutoff) nS_after_bdt_cut++;
             }
             else {
                 nB_total++;
-                if (bdtout > cutoff) 
-                    nB_after_bdt_cut++;
+                if (bdtout > cutoff) nB_after_bdt_cut++;
             }
         }
 
-        if (nB_after_bdt_cut < 3 ) 
-        nB_after_bdt_cut = 3;
-
-        signal_xsection_after_preselection = signal_xsection*nS_after_preselection/nS_original;
-        bg_xsection_after_preselection = bg_xsection * nB_after_preselection/nB_original;
+        if (nB_after_bdt_cut < 3) nB_after_bdt_cut = 3;
         
-        signal_xsection_after_bdt_cut = signal_xsection_after_preselection*((double)nS_after_bdt_cut/nS_total);
-        bg_xsection_after_bdt_cut = bg_xsection_after_preselection*((double)nB_after_bdt_cut/nB_total);
+        S_xs_after_bdt_cut = S_xs_after_preselection*((double)nS_after_bdt_cut/nS_after_preselection);
+        B_xs_after_bdt_cut = B_xs_after_preselection*((double)nB_after_bdt_cut/nB_after_preselection);
         
-        test_sig = sqrt(luminosity)*signal_xsection_after_bdt_cut/sqrt(bg_xsection_after_bdt_cut);
+        test_sig = sqrt(L)*S_xs_after_bdt_cut/sqrt(B_xs_after_bdt_cut);
         sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva;
         cutoff+=0.1;
     }
+
     return sig_from_tmva;
   }
 
 int main(int argc, char* argv[]) {
 
   // Get the signal benchmark point from command line arguments
-  std::string signal_process = argv[1];
+  string signal_process = string(argv[1]);
   double 
     mC        = atof(argv[2]),
     mH        = atof(argv[3]),
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
 
   // Specify the names of the cuts
 
-  std::vector<std::string> cutNames = {
+  vector<string> cutNames = {
     "Initial",
     "2 leptons",
     "1/2 b-jets",
@@ -325,8 +325,8 @@ int main(int argc, char* argv[]) {
     "2D mass cut"
   };
 
-  // Declare the feature names, create a std::map with keys corresponding to them
-  std::vector<std::string> featureNames = {
+  // Declare the feature names, create a map with keys corresponding to them
+  vector<string> featureNames = {
     "MET", 
     "pt_j1",
     "pt_l1",
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     "mC"
   };
 
-  std::map<std::string, double> features;
+  map<string, double> features;
 
 
   // Set tan beta and the signal cross section
@@ -355,7 +355,7 @@ int main(int argc, char* argv[]) {
 
   // Run analysis and store the counters for the cut flow
 
-  std::vector< std::vector<int> > counters = {
+  vector< vector<int> > counters = {
     run_analysis(signal_process, cutNames, features, signal_tree, mC, mH),
     run_analysis("tttautau", cutNames, features, background_tree, mC, mH)
   };
@@ -363,16 +363,24 @@ int main(int argc, char* argv[]) {
   // Calculate cut-and-count significance
   double significance = calculate_significance(counters, signal_xsection);
 
-  TMVA::Factory* factory = new TMVA::Factory("TMVAClassification", 
+  string classifierName = string("TMVAClassification") 
+                        + string("_")
+                        + string(argv[7])
+                        + string("_mC_")
+                        + string(argv[2])
+                        + string("_mH_")
+                        + string(argv[3]) 
+                        + string("_tb_") 
+                        + string(argv[4]);
+
+  TMVA::Factory* factory = new TMVA::Factory(classifierName, 
           "!V:Silent:Color:!DrawProgressBar:Transformations=I;D;P;G,D"
           ":AnalysisType=Classification");
 
   TMVA::DataLoader* dataloader = new TMVA::DataLoader();
 
   // Add features
-  for (auto featureName : featureNames) {
-    dataloader->AddVariable(featureName);
-  }
+  for (auto n : featureNames) dataloader->AddVariable(n);
 
   // Add signal and background trees
   dataloader->AddSignalTree(signal_tree);
@@ -405,9 +413,10 @@ int main(int argc, char* argv[]) {
   TMVA::DataSet* dataset = method->Data();
 
   TTree* testTree = dataset->GetTree(TMVA::Types::kTesting);
-  double sig_from_tmva = calculate_tmva_significance(testTree, counters, signal_xsection);
+  double sig_from_tmva = calculate_tmva_significance(testTree, counters,
+                                                     signal_xsection);
 
-  std::cout << significance << " " << sig_from_tmva << std::endl; 
+  cout << significance << " " << sig_from_tmva << endl; 
 
   return 0;
 }
