@@ -236,6 +236,32 @@ double calculate_significance(vector< vector<int>> cs, double S_prod_xs) {
     return sig;
 }
 
+double discovery_significance(double s, double b, double Delta_b){
+    double 
+        t1 = s+b,
+        t2 = pow(Delta_b, 2)
+        t3 = b + t2,
+        t4 = t1*t3/(b*b + t1*t2),
+        t5 = b*b/t2,
+        t6 = 1 + t2*s/(b*t3),
+        Z_d = sqrt(2*(t1*log(t4) - t5*log(t6)));
+
+    return Z_d;
+}
+
+double exclustion_limit(double s, double b, double Delta_b){
+    double t1 = s+b;
+    double t2 = pow(Delta_b, 2);
+    double t3 = b + t2;
+    double t5 = b*b/t2;
+   
+    double x = sqrt(t1*2 - 4*s*b*t2/t3);
+    double Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b) - t5*log((b-s+x)/(2*b)))) - (b+s-x)(1+b/t2));
+
+    return Z_e;
+}
+
+
 // Calculate the TMVA significance
 double calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs,
                                    double S_xs){
