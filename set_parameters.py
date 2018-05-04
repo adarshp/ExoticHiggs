@@ -1,5 +1,8 @@
 import sys
-from myProcesses import Hc_HW_tautau_ll_100_TeV_collection, Hc_HW_tautau_ll_100_TeV_deltaM_200_collection 
+from myProcesses import (C_HW_tautau_ll_100_TeV_mC_mH_collection,
+                         C_HW_tautau_ll_100_TeV_mC_tb_collection,
+                         C_HW_tautau_ll_100_TeV_mC_deltaM_collection)
+
 from clusterpheno.helpers import cd, modify_file
 import shutil as sh
 import os
@@ -18,11 +21,16 @@ if __name__ == '__main__':
     p1 = float(sys.argv[2])
     p2 = float(sys.argv[3])
 
+    def get_proc(param1, param2, collection):
+        return filter(lambda x: float(x.bp[param1]) == p1 
+                            and float(x.bp[param2]) == p2,
+                      collection)[0]
+
     if sys.argv[1] == '--mC_mH':
-        myproc = filter(lambda x: float(x.bp['mC']) == p1 and float(x.bp['mH']) == p2,
-                     Hc_HW_tautau_ll_100_TeV_collection)[0]
+        myproc = get_proc('mC', 'mH', C_HW_tautau_ll_100_TeV_mC_mH_collection)
     if sys.argv[1] == '--mC_tb':
-        myproc = filter(lambda x: float(x.bp['mC']) == p1 and float(x.bp['tb']) == p2,
-                     Hc_HW_tautau_ll_100_TeV_deltaM_200_collection)[0]
+        myproc = get_proc('mC', 'tb', C_HW_tautau_ll_100_TeV_mC_tb_collection)
+    if sys.argv[1] == '--mC_deltaM':
+        myproc = get_proc('mC', 'mH', C_HW_tautau_ll_100_TeV_mC_deltaM_collection)
 
     copy_cards_and_set_parameters(myproc)
