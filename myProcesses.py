@@ -27,10 +27,10 @@ BP_IIB_mC_deltaM = get_benchmark_points('BP_IIB_mC_deltaM.txt')
 
 class TwoHiggsDoubletModelProcess(Process):
 
-    def __init__(self, name, decay_channel, mg5_generation_syntax=None, energy, benchmark_point):
+    def __init__(self, name, decay_channel, energy, benchmark_point):
 
         self.bp = benchmark_point
-        Process.__init__(self, name, '2HDM', decay_channel, mg5_generation_syntax, energy, self.make_index()) 
+        Process.__init__(self, name, '2HDM', decay_channel, None, energy, self.make_index()) 
 
     def make_index(self):
         return '_'.join(["mC", str(float(self.bp['mC'])), "mH", str(float(self.bp['mH']))])
