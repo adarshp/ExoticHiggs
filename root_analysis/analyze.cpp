@@ -3,7 +3,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <tuple>
 
 #include "TROOT.h"
 #include "TH1.h"
@@ -237,28 +236,8 @@ double calculate_significance(vector< vector<int>> cs, double S_prod_xs) {
     return sig;
 }
 
-tuple<double, double> calculate_Z_values(int nS_MC_i, int nS_MC_f, int nB_MC_i, int nB_MC_f,
-                          double S_xs, double B_xs){
-    double 
-        s = (S_xs*nB_MC_f)/nS_MC_i,
-        b = (B_xs*nB_MC_f)/nB_MC_i,
-        Delta_b = 0.1*b,
-        t1 = s+b,
-        t2 = pow(Delta_b, 2),
-        t3 = b + t2,
-        t4 = t1*t3/(b*b + t1*t2),
-        t5 = b*b/t2,
-        t6 = 1 + t2*s/(b*t3),
-        x = sqrt(t1*2 - 4*s*b*t2/t3),
-        Z_d = sqrt(2*(t1*log(t4) - t5*log(t6))),
-        Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b) - t5*log((b-s+x)/(2*b)))) - (b+s-x)*(1+b/t2));
-
-    return make_tuple(Z_d, Z_e);
-}
-
-
 // Calculate the TMVA significance
-tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs,
+double calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs,
                                    double S_xs){
 
     float bdtout;
@@ -319,11 +298,7 @@ tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vecto
         cutoff+=0.1;
     }
 
-    double Z_d, Z_e;
-    tie(Z_d, Z_e) = calculate_Z_values(nS_after_preselection, nS_after_bdt_cut,
-                                         nB_after_preselection, nB_after_bdt_cut, 
-                                         S_xs, B_xs);
-    return make_tuple(Z_d, Z_e);
+    return sig_from_tmva;
   }
 
 int main(int argc, char* argv[]) {
@@ -386,13 +361,17 @@ int main(int argc, char* argv[]) {
   };
 
   // Calculate cut-and-count significance
-  /* double significance = calculate_significance(counters, signal_xsection); */
+  double significance = calculate_significance(counters, signal_xsection);
 
   string classifierName = string("TMVAClassification") 
-                        + string("_") + string(argv[7])
-                        + string("_mC_") + string(argv[2])
-                        + string("_mH_") + string(argv[3]) 
-                        + string("_tb_") + string(argv[4]);
+                        + string("_")
+                        + string(argv[7])
+                        + string("_mC_")
+                        + string(argv[2])
+                        + string("_mH_")
+                        + string(argv[3]) 
+                        + string("_tb_") 
+                        + string(argv[4]);
 
   TMVA::Factory* factory = new TMVA::Factory(classifierName, 
           "!V:Silent:Color:!DrawProgressBar:Transformations=I;D;P;G,D"
@@ -408,8 +387,8 @@ int main(int argc, char* argv[]) {
   dataloader->AddBackgroundTree(background_tree);
 
   // Do the train-test split
-  dataloader->PrepareTrainingAndTestTree("", "", "nTrain_Signal=0"
-          ":nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
+  dataloader->PrepareTrainingAndTestTree("", "",
+    "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
 
   // Initialize Boosted Decision Tree Classifier
   factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG",
@@ -434,11 +413,10 @@ int main(int argc, char* argv[]) {
   TMVA::DataSet* dataset = method->Data();
 
   TTree* testTree = dataset->GetTree(TMVA::Types::kTesting);
-  double Z_d, Z_e;
-  tie(Z_d, Z_e) = calculate_tmva_significance(testTree, counters,
-                                              signal_xsection);
+  double sig_from_tmva = calculate_tmva_significance(testTree, counters,
+                                                     signal_xsection);
 
-  cout << Z_d << " " <<  Z_e << endl; 
+  cout << significance << " " << sig_from_tmva << endl; 
 
   return 0;
 }
