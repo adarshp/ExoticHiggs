@@ -1,5 +1,5 @@
 ####################################
-CXX             = g++ -std=c++11 -Wno-deprecated
+CXX             = g++ -std=c++17 -Wno-deprecated
 ######### ROOT #####################
 ROOTCFLAGS     = $(shell root-config --cflags)
 ROOTLIBS       = $(shell root-config --libs) -lMLP -lMinuit -lTreePlayer -lTMVA -lXMLIO  -lMLP -lm
