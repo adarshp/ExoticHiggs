@@ -219,32 +219,17 @@ vector<int> run_analysis(string process, vector<string> cutNames,
     return counters;
 }
 
-// Calculate the cut-and-count significance
-double calculate_significance(vector< vector<int>> cs, double S_prod_xs) {
-    double 
-        L = 3000.0, // Luminosity
-        B_xs = 95.71,
-        n_B = cs[1][cs[1].size()-1];
 
-    n_B = (n_B < 3)?(n_B=3):(n_B=n_B);
-
-    double
-        S_xs_after_cuts = ((double) cs[0][cs[0].size()-1]/cs[0][0])*S_prod_xs,
-        B_xs_after_cuts = ((double) n_B/cs[1][0])*B_xs,
-        sig = (S_xs_after_cuts/sqrt(B_xs_after_cuts))*sqrt(L);
-
-    return sig;
-}
-
-tuple<double, double> calculate_Z_values(int nS_MC_i, int nS_MC_f, int nB_MC_i,
-                                         int nB_MC_f, double S_xs, double B_xs){
+tuple<double, double> calculate_Z_values(int nS_MC_i, int nS_MC_f,
+                                         int nB_MC_i, int nB_MC_f,
+                                         double S_xs, double B_xs){
 
     double 
-        s = (S_xs*nS_MC_f)/nS_MC_i,
-        b = (B_xs*nB_MC_f)/nB_MC_i,
-        Delta_b = 0.1*b,
+        L = 3000.0,
+        s = L*(S_xs*nS_MC_f)/nS_MC_i,
+        b = L*(B_xs*nB_MC_f)/nB_MC_i,
         t1 = s+b,
-        t2 = pow(Delta_b, 2),
+        t2 = 0.1*b,
         t3 = b + t2,
         t4 = t1*t3/(b*b + t1*t2),
         t5 = b*b/t2,
@@ -253,14 +238,21 @@ tuple<double, double> calculate_Z_values(int nS_MC_i, int nS_MC_f, int nB_MC_i,
         Z_d = sqrt(2*(t1*log(t4) - t5*log(t6))),
         Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b)) - t5*log((b-s+x)/(2*b))) - (b+s-x)*(1+b/t2));
 
+    cerr << " s = "       << s
+         << "; b = "       << b
+         << "; nS_MC_i = " << nS_MC_i
+         << "; nS_MC_f = " << nS_MC_f
+         << "; nB_MC_i = " << nB_MC_i
+         << "; nB_MC_f = " << nB_MC_f
+         << "; S_xs = "     << S_xs
+         << "; Z_d = "     << Z_d
+         << "; Z_e = "     << Z_e     << endl;
+
     return make_tuple(Z_d, Z_e);
 }
 
 // Calculate the TMVA significance
-tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs,
-                                   double S_xs){
-/* double calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs, */
-/*                                    double S_xs){ */
+tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vector<int> > cs, double S_xs){
 
     float bdtout;
     char type;
@@ -280,24 +272,16 @@ tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vecto
 
     double 
         cutoff=-10,
-        L = 3000,
         B_xs = 95.71,
-        S_xs_after_preselection= S_xs * nS_after_preselection/nS_original,
-        B_xs_after_preselection= B_xs * nB_after_preselection/nB_original,
-        S_xs_after_bdt_cut,
-        B_xs_after_bdt_cut,
-        test_sig,
         sig_from_tmva = 0,
         candidate_Zd = 0,
         candidate_Ze = 0,
         Zd = 0, Ze = 0;
 
-
-
     // Loop over different values of the bdt response cutoff, pick the maximum
     // significance achieved.
 
-    for (int j=0; j < 200; j++){
+    for (int j=0; j < 2000; j++){
 
         nS_after_bdt_cut = 0;
         nB_after_bdt_cut = 0;
@@ -316,11 +300,12 @@ tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vecto
 
         if (nB_after_bdt_cut < 3) nB_after_bdt_cut = 3;
         
-        S_xs_after_bdt_cut = S_xs_after_preselection*((double)nS_after_bdt_cut/nS_after_preselection);
-        B_xs_after_bdt_cut = B_xs_after_preselection*((double)nB_after_bdt_cut/nB_after_preselection);
+        /* S_xs_after_bdt_cut = S_xs_after_preselection*((double)nS_after_bdt_cut/nS_after_preselection); */
+        /* B_xs_after_bdt_cut = B_xs_after_preselection*((double)nB_after_bdt_cut/nB_after_preselection); */
         
-        test_sig = sqrt(L)*S_xs_after_bdt_cut/sqrt(B_xs_after_bdt_cut);
-        sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva;
+        /* test_sig = sqrt(L)*S_xs_after_bdt_cut/sqrt(B_xs_after_bdt_cut); */
+        /* sig_from_tmva = (test_sig > sig_from_tmva)?test_sig:sig_from_tmva; */
+
         tie(candidate_Zd, candidate_Ze) = calculate_Z_values(
                 nS_after_preselection, nS_after_bdt_cut,
                 nB_after_preselection, nB_after_bdt_cut,
@@ -330,11 +315,10 @@ tuple<double, double> calculate_tmva_significance(TTree* testTree, vector< vecto
         Zd = (candidate_Zd > Zd)?candidate_Zd:Zd;
         Ze = (candidate_Ze > Ze)?candidate_Ze:Ze;
 
-        cutoff+=0.1;
+        cutoff+=0.01;
     }
 
     return {Zd, Ze};
-    /* return sig_from_tmva; */
   }
 
 int main(int argc, char* argv[]) {
@@ -396,8 +380,6 @@ int main(int argc, char* argv[]) {
     run_analysis("tttautau", cutNames, features, background_tree, mC, mH)
   };
 
-  // Calculate cut-and-count significance
-  double significance = calculate_significance(counters, signal_xsection);
 
   string classifierName = string("TMVAClassification") 
                         + string("_")
@@ -451,8 +433,6 @@ int main(int argc, char* argv[]) {
   TMVA::DataSet* dataset = method->Data();
 
   TTree* testTree = dataset->GetTree(TMVA::Types::kTesting);
-  /* double sig_from_tmva = calculate_tmva_significance(testTree, counters, */
-  /*                                                    signal_xsection); */
   double Z_d, Z_e;
   tie(Z_d, Z_e) = calculate_tmva_significance(testTree, counters,
                                               signal_xsection);
