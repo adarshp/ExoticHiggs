@@ -238,16 +238,6 @@ tuple<double, double> calculate_Z_values(int nS_MC_i, int nS_MC_f,
         Z_d = sqrt(2*(t1*log(t4) - t5*log(t6))),
         Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b)) - t5*log((b-s+x)/(2*b))) - (b+s-x)*(1+b/t2));
 
-    cerr << " s = "       << s
-         << "; b = "       << b
-         << "; nS_MC_i = " << nS_MC_i
-         << "; nS_MC_f = " << nS_MC_f
-         << "; nB_MC_i = " << nB_MC_i
-         << "; nB_MC_f = " << nB_MC_f
-         << "; S_xs = "     << S_xs
-         << "; Z_d = "     << Z_d
-         << "; Z_e = "     << Z_e     << endl;
-
     return make_tuple(Z_d, Z_e);
 }
 
