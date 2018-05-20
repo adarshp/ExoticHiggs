@@ -45,7 +45,7 @@ class TwoHiggsDoubletModelProcess(Process):
             elif "Wh1" in words: return "DECAY  25 {} # Wh1\n".format(self.bp['wh'])
             elif "Wh2" in words: return "DECAY  35 {} # Wh2\n".format(self.bp['wH'])
             elif "Wh3" in words: return "DECAY  36 {} # Wh3\n".format(self.bp['wA'])
-            elif "Whc" in words: return "DECAY  37 {} # Whc\n".format(self.bp['wC'])
+            elif "whc" in words: return "DECAY  37 {} # Whc\n".format(self.bp['wC'])
             else: return line
 
         modify_file('Cards/param_card.dat', set_2HDM_params)
