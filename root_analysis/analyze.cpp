@@ -188,10 +188,7 @@ void AnalyseEvents(ExRootTreeReader* treeReader, vector<int>& counters,
         w_tautauW = 0.2*mC;
 
     double EH = (pow(mC, 2) + pow(mH, 2) - pow(mW, 2))/(2*mH);
-    if (!(((1 - delta - w_tautau)*mH < H_candidate.m() < (1-delta+w_tautau)*mH)
-        and ((mH/EH)*(charged_higgs.m() - mC - w_tautauW) 
-            < H_candidate.m() - mH 
-            < (mH/EH)*(charged_higgs.m() - mC + w_tautauW)))) continue;
+
     counters[j]++; j++;
     features["MET"] = met->MET;
     features["pt_j1"] = untagged_jets[0]->PT;
@@ -397,8 +394,6 @@ int main(int argc, char* argv[]) {
   // Do the train-test split
   dataloader->PrepareTrainingAndTestTree("", "", "nTrain_Signal=0"
           ":nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
-  /* dataloader->PrepareTrainingAndTestTree("", "", */
-  /*   "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V"); */
 
   // Initialize Boosted Decision Tree Classifier
   factory->BookMethod(dataloader, TMVA::Types::kBDT, "BDTG",
