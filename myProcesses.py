@@ -12,15 +12,15 @@ import pandas as pd
 from tqdm import tqdm
 from ConfigParser import SafeConfigParser
 
+param_combinations = ['mC_mH', 'mC_tb', 'mC_deltaM']
+
 def get_benchmark_points(filename):
     df = pd.read_csv('benchmark_planes/'+filename,
                      delim_whitespace=True, dtype = 'str')
     return df.iterrows()
 
 # Get benchmark points from a text file
-BP_IIB_mC_mH = get_benchmark_points('BP_IIB_mC_mH.txt')
-BP_IIB_mC_tb = get_benchmark_points('BP_IIB_mC_tb.txt')
-BP_IIB_mC_deltaM = get_benchmark_points('BP_IIB_mC_deltaM.txt')
+BP_IIB = {k:get_benchmark_points('BP_IIB_'+k+'.txt') for k in param_combinations}
 
 # Define a collection of signal processes corresponding to the
 # Benchmark point
@@ -51,23 +51,7 @@ class TwoHiggsDoubletModelProcess(Process):
         modify_file('Cards/param_card.dat', set_2HDM_params)
 
 
-C_HW_tautau_ll_100_TeV_mC_mH_collection = [TwoHiggsDoubletModelProcess(
-        name = 'C_HW',
-        decay_channel = 'tataW',
-        energy = 100,
-        benchmark_point = bp[1],
-    ) for bp in list(BP_IIB_mC_mH)]
-
-C_HW_tautau_ll_100_TeV_mC_tb_collection = [TwoHiggsDoubletModelProcess(
-        name = 'C_HW',
-        decay_channel = 'tataW',
-        energy = 100,
-        benchmark_point = bp[1],
-    ) for bp in list(BP_IIB_mC_tb)]
-
-C_HW_tautau_ll_100_TeV_mC_deltaM_collection = [TwoHiggsDoubletModelProcess(
-        name = 'C_HW',
-        decay_channel = 'tataW',
-        energy = 100,
-        benchmark_point = bp[1],
-    ) for bp in list(BP_IIB_mC_deltaM)]
+C_HW_tataW_100_TeV_processes = {k: [TwoHiggsDoubletModelProcess(
+    name = 'C_HW', decay_channel = 'tataW', energy = 100,
+    benchmark_point = bp[1],) for bp in list(BP_IIB[k])]
+    for k in param_combinations}
