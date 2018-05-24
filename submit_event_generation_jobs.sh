@@ -1,3 +1,9 @@
-qsub -J 1-$((`wc -l benchmark_planes/BP_IIB_mC_mH.txt | awk '{print $1}'` - 1)) generate_mC_mH_events.pbs
-# qsub -J 1-$((`wc -l benchmark_planes/BP_IIB_mC_deltaM.txt | awk '{print $1}'` - 1)) generate_mC_deltaM_events.pbs
-qsub -J 1-$((`wc -l benchmark_planes/BP_IIB_mC_tb.txt | awk '{print $1}'` - 1)) generate_mC_tb_events.pbs
+submit_job() {
+    qsub -N $1\_gen -J 1-$((`wc -l benchmark_planes/BP_IIB_$1.txt |\
+            awk '{print $1}'` - 1)) -v param_combination=$1 generate_events.pbs
+}
+
+for param_combination in mC_mH mC_tb mC_deltaM; do
+    submit_job $param_combination
+done
+
