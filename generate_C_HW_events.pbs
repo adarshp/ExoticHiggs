@@ -3,7 +3,7 @@
 #PBS -W group_list=shufang
 #PBS -q standard
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
-#PBS -l cput=35:0:0
+#PBS -l cput=40:0:0
 #PBS -l walltime=24:0:0
 
 # Script for generating events on the cluster.
