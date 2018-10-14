@@ -1,11 +1,8 @@
-import model sm
-define p = g u c d s u~ c~ d~ s~
-define j = g u c d s u~ c~ d~ s~
-define v = ve vm vt ve~ vm~ vt~
+define v = vl vl~
+define l = l+ l-
 define tau = ta+ ta-
-define lep = e+ e- mu+ mu-
-define bot = b b~
+define bottom = b b~
 define top = t t~
-define w = w+ w-
-generate p p > top top lep lep, (top > bot w, w > tau v), (top > bot w, w > lep v)
+define W = w+ w-
+generate p p > top top l l, (top > bottom W, W > tau v), (top > bottom W, W > l v)
 output ttll-full

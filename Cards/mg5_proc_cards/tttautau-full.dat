@@ -4,5 +4,5 @@ define l = l+ l- tau
 define bottom = b b~
 define top = t t~
 define W = w+ w-
-generate p p > top top l v, (top > bottom W, W > l v), (top > bottom W, W > l v)
-output ttlv-full
+generate p p > top top tau tau, (top > bottom W, W > l v), (top > bottom W, W > l v)
+output tttautau-full
