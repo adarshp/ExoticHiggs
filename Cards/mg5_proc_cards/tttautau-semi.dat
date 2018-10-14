@@ -1,0 +1,11 @@
+import model sm
+define p = g u c d s u~ c~ d~ s~
+define j = g u c d s u~ c~ d~ s~
+define v = ve vm vt ve~ vm~ vt~
+define tau = ta+ ta-
+define l = l+ l-
+define bot = b b~
+define top = t t~
+define w = w+ w-
+generate p p > top top tau tau, (top > bot w, w > lep v), (top > bot w, w > j j)
+output tttautau-semi

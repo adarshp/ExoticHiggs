@@ -55,3 +55,13 @@ C_HW_tataW_100_TeV_processes = {k: [TwoHiggsDoubletModelProcess(
     name = 'C_HW', decay_channel = 'tataW', energy = 100,
     benchmark_point = bp[1],) for bp in list(BP_IIB[k])]
     for k in param_combinations}
+
+C_HW_ttW_100_TeV_processes = {
+    k: [
+        TwoHiggsDoubletModelProcess(
+            name = 'C_HW', decay_channel = 'ttW', energy = 100,
+            benchmark_point = bp[1],
+        ) for bp in list(BP_IIB[k])
+    ]
+    for k in param_combinations
+}

@@ -5,6 +5,6 @@ define tt = t t~
 define bb = b b~
 define ll = l+ l-
 define vv = vl vl~
-generate g g > tt bb hc , ( hc > h2 w , h2 > t t~ , w > ll vv ), (tt > bb w, w > j j)
-add process g g > tt bb hc , ( hc > h2 w , h2 > t t~ , w > j j ), (tt > bb w, w > ll vv)
+generate g g > h+ t~ b, (h+ > h2 w+, (w+ > j j), (h2 > t t~, (t~ > w- b~, w- > l- vl~))), (t~ > w- b~, w- > l- vl~)
+add process  g g > h- t b~, (h- > h2 w-, (w- > j j), (h2 > t t~, (t > w+ b, w+ > l+ vl))), (t > w+ b, w+ > l+ vl)
 output C_HW_ttW

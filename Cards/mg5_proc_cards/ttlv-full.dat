@@ -1,0 +1,11 @@
+import model sm
+define p = g u c d s u~ c~ d~ s~
+define j = g u c d s u~ c~ d~ s~
+define v = ve vm vt ve~ vm~ vt~
+define tau = ta+ ta-
+define lep = e+ e- mu+ mu-
+define bottom = b b~
+define top = t t~
+define w = w+ w-
+generate p p > top top lep v, (top > bot w, w > tau v), (top > bot w, w > lep v)
+output ttlv-full

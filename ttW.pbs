@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#PBS -M adarsh@email.arizona.edu
+#PBS -N ttW
+#PBS -W group_list=shufang
+#PBS -q windfall
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
+#PBS -l cput=280:0:0
+#PBS -l walltime=24:0:0
+#PBS -m abe
+
+date
+
+mg5=$HOME/MG5_aMC_v2_6_0/bin/mg5_aMC
+project_dir=$HOME/ExoticHiggs
+cards_dir=$project_dir/Cards
+bg_name=ttW
+
+cd /tmp
+$mg5 $project_dir/Cards/mg5_proc_cards/$bg_name\.dat
+cd $bg_name
+cp $cards_dir/run_cards/run_card.dat Cards/run_card.dat
+cp $cards_dir/delphes_cards/delphes_card_with_top_tagging.tcl Cards/delphes_card.dat
+./bin/generate_events --laststep=delphes
+cp -r Events $project_dir/$bg_name\_events
+cd ../
+rm -rf $bg_name
+date
+exit 0

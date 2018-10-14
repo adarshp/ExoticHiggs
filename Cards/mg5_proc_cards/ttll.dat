@@ -1,0 +1,8 @@
+define w = w+ w-
+define tt = t t~
+define bb = b b~
+define l = l+ l-
+define v = vl vl~
+define tau = ta+ ta-
+generate p p > tt tt l l, (tt > w bb, w > tau v), (tt > w bb, w > tau v)
+output ttll
