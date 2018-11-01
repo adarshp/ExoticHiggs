@@ -230,6 +230,10 @@ int main(int argc, char* argv[]) {
     BR_W_jj = 0.676; // Branching ratio W -> jj
 
 
+  cout << "Signal cross section: " << MyCrossSection_100TeV_Htb(mC, tan_beta) << endl;
+  cout << "BR(C -> HW): " << BR_C_HW << endl;
+  cout << "BR(H -> tau tau): " << BR_C_tata << endl;
+
   // Set tan beta and the signal cross-section. 
   signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)
                    * 1000 // Convert from picobarn to femtobarn
