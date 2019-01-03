@@ -17,6 +17,7 @@ aggregate_results() {
     done
 }
 
-for param_combination in mC_mH mC_tb mC_deltaM; do
+# for param_combination in mC_mH mC_tb mC_deltaM; do
+for param_combination in mC_deltaM; do
     aggregate_results $param_combination
 done

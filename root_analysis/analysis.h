@@ -114,12 +114,12 @@ tuple<double, double> calculate_Z_values(
         sigma_b = systematic_error*b,
         t2 = pow(sigma_b, 2),
         t3 = b + t2,
-        t4 = t1*t3/(b*b + t1*t2),
-        t5 = b*b/t2,
-        t6 = 1 + t2*s/(b*t3),
-        x = sqrt(pow(t1,2) - 4*s*b*t2/t3),
-        Z_d = sqrt(2*(t1*log(t4) - t5*log(t6))),
-        Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b)) - t5*log((b-s+x)/(2*b))) - (b+s-x)*(1+b/t2));
+        t4 = b*b/t2,
+        x = sqrt(pow(t1,2) - 4*s*b*t2/t3);
+
+    b = std::max(b, 3.0);
+    double Z_d = sqrt(2*(t1*log(t1*t3/(b*b + t1*t2)) - t4*log(1 + t2*s/(b*t3))));
+    double Z_e = sqrt(2*(s - b*log((b + s + x)/(2*b)) - t4*log((b-s+x)/(2*b))) - (b+s-x)*(1+b/t2));
 
     return make_tuple(Z_d, Z_e);
 }
@@ -160,25 +160,27 @@ tuple<double, double> calculate_tmva_significance(TTree* testTree) {
     // significance achieved.
 
     double w;
-    /* for (int i = 0; i < testTree->GetEntries(); i++){ */
-    /*     testTree->GetEntry(i); */
-    /*     if (type=='S') */ 
-    /*         signal_bdt_histogram->Fill(bdtout, weight); */
-    /*     else background_bdt_histogram->Fill(bdtout, weight); */
-    /* } */
+    for (int i = 0; i < testTree->GetEntries(); i++){
+        testTree->GetEntry(i);
+        if (type=='S') 
+            signal_bdt_histogram->Fill(bdtout, weight);
+        else background_bdt_histogram->Fill(bdtout, weight);
+    }
 
     for (int j=0; j < 200; j++){
+        s=0; b=0;
         for (int i = 0; i < testTree->GetEntries(); i++){
             testTree->GetEntry(i);
             if (bdtout > cutoff) {
                 if (type=='S') s+=L*weight;
                 else b+=L*weight;
             }
+            
         }
-        b = (b < 3)?3:b;
         tie(candidate_Zd, candidate_Ze) = calculate_Z_values(s, b);
         Zd = (candidate_Zd > Zd)?candidate_Zd:Zd;
         Ze = (candidate_Ze > Ze)?candidate_Ze:Ze;
+        cerr << "s: " << s << "b: " << b << "Zd: " << Zd << "Ze: " << Ze << endl;
 
         cutoff+=0.01;
     }
@@ -203,9 +205,10 @@ TTree* perform_tmva_analysis(string classifierName, TTree* signal_tree) {
         dataloader->AddVariable(n);
 
     // Calculate signal weight
-    double signal_weight = signal_xsection
-                          *counters[signal_name]["OS tau jet"]/counters[signal_name]["Initial"];
-
+    double signal_weight = signal_xsection/counters[signal_name]["Initial"];
+    cerr << "signal xsection: " << signal_xsection << endl;
+    cerr << "signal initial counter: " << counters[signal_name]["Initial"] << endl;
+    cerr << "signal final counter: " << counters[signal_name]["OS tau jet"] << endl;
 
 
     // Add signal and background trees
@@ -213,7 +216,7 @@ TTree* perform_tmva_analysis(string classifierName, TTree* signal_tree) {
 
     double bg_weight;
     for (auto bg : bgNames) {
-        bg_weight = original_xsections[bg]*counters[bg]["OS tau jet"]/counters[bg]["Initial"];
+        bg_weight = original_xsections[bg]/counters[bg]["Initial"];
         dataloader->AddBackgroundTree(background_ttrees[bg], bg_weight);
     }
 

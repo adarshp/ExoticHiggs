@@ -35,7 +35,7 @@ if __name__ == '__main__':
     mC = sys.argv[2]
     mH = sys.argv[3]
     tb = sys.argv[4]
-    proc = sys.argv[5]
+    proc_name = sys.argv[5]
 
-    myproc = get_proc(mC, mH, tb, processes_dict[proc][sys.argv[1]])
+    myproc = get_proc(mC, mH, tb, processes_dict[proc_name][sys.argv[1]])
     copy_cards_and_set_parameters(myproc, proc_name)

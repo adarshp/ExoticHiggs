@@ -230,14 +230,16 @@ int main(int argc, char* argv[]) {
     BR_W_jj = 0.676; // Branching ratio W -> jj
 
 
-  cout << "Signal cross section: " << MyCrossSection_100TeV_Htb(mC, tan_beta) << endl;
-  cout << "BR(C -> HW): " << BR_C_HW << endl;
-  cout << "BR(H -> tau tau): " << BR_C_tata << endl;
 
   // Set tan beta and the signal cross-section. 
-  signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta)
+  signal_xsection = MyCrossSection_100TeV_Htb(mC, tan_beta);
+  /* cout << "Signal cross section: " << signal_xsection*1000 << "fb" << endl; */
+  /* cout << "BR(C -> HW): " << BR_C_HW << endl; */
+  /* cout << "BR(H -> tau tau): " << BR_H_tata << endl; */
+  signal_xsection = signal_xsection
                    * 1000 // Convert from picobarn to femtobarn
                    * BR_C_HW * BR_H_tata * BR_W_lv * BR_W_jj; 
+  /* cout << "original number of signal events: " << 3000*signal_xsection << endl; */ 
 
 
   // Initialize TTrees for the signal and background processes
@@ -265,6 +267,11 @@ int main(int argc, char* argv[]) {
   for (auto bg : bgNames)
       run_analysis(bg, background_ttrees[bg], mC, mH);
 
+    /* for(auto const &cutName : counters[signal_name]) { */
+    /*     cerr << cutName.first << counters[signal_name][cutName.first] << endl; */
+    /*     cerr << cutName.first << counters[signal_name][cutName.first] << endl; */
+    /* } */
+
   // Construct a name for the classifier
   string classifierName = string("TMVAClassification_") 
                         + string(argv[7])
@@ -281,8 +288,8 @@ int main(int argc, char* argv[]) {
   double Z_d, Z_e;
   tie(Z_d, Z_e) = calculate_tmva_significance(testTree); 
   cout << Z_d << " " <<  Z_e << endl; 
-  /* output_histogram_to_text_file("Signal", signal_bdt_histogram); */
-  /* output_histogram_to_text_file("Background", background_bdt_histogram); */
+  output_histogram_to_text_file("Signal", signal_bdt_histogram);
+  output_histogram_to_text_file("Background", background_bdt_histogram);
 
   return 0;
 }
