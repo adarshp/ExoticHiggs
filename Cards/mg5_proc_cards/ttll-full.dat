@@ -1,0 +1,8 @@
+define v = vl vl~
+define l = l+ l-
+define tau = ta+ ta-
+define bottom = b b~
+define top = t t~
+define W = w+ w-
+generate p p > top top l l, (top > bottom W, W > tau v), (top > bottom W, W > l v)
+output ttll-full

@@ -1,0 +1,7 @@
+define l+ = l+ ta+
+define l- = l- ta-
+generate p p > t t~, (t > b w+, w+ > j j), (t~ > b~ w-, w- > l- vl~) @0
+add process p p > t t~, (t > b w+, w+ > l+ vl), (t~ > b~ w-, w- > j j) @0
+add process p p > t t~ j, (t > b w+, w+ > j j), (t~ > b~ w-, w- > l- vl~) @1
+add process p p > t t~ j, (t > b w+, w+ > l+ vl), (t~ > b~ w-, w- > j j) @1
+output tt_semileptonic_including_taus

@@ -1,0 +1,10 @@
+import model 2HDM_HEFT
+define hc = h+ h-
+define w = w+ w- 
+define tt = t t~
+define bb = b b~
+define ll = l+ l-
+define vv = vl vl~
+generate g g > h+ t~ b, (h+ > h2 w+, (w+ > j j), (h2 > t t~, (t~ > w- b~, w- > l- vl~))), (t~ > w- b~, w- > l- vl~)
+add process  g g > h- t b~, (h- > h2 w-, (w- > j j), (h2 > t t~, (t > w+ b, w+ > l+ vl))), (t > w+ b, w+ > l+ vl)
+output C_HW_ttW

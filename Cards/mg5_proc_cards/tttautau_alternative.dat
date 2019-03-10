@@ -1,0 +1,9 @@
+define boson = z h a
+define tt = t t~
+define bb = b b~
+define w = w+ w-
+define tau = ta+ ta-
+define l = l+ l- tau
+define v = vl vl~
+generate p p > tt tt boson, (tt > bb w, w > l v), (tt > bb w, w > j j), (boson > tau tau)
+output tttautau_alternative

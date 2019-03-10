@@ -1,0 +1,78 @@
+#!/bin/bash
+#PBS -M adarsh@email.arizona.edu
+#PBS -W group_list=shufang
+#PBS -q windfall
+#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
+#PBS -l cput=40:0:0
+#PBS -l walltime=24:0:0
+#PBS -m ea
+
+# Script for generating events on the cluster.
+# Usage: generation_script <array_id>
+
+date
+
+# Set some globals
+
+# Location of the MadGraph5 executable
+mg5=$HOME/MG5_aMC_v2_6_0/bin/mg5_aMC
+project_dir=$HOME/ExoticHiggs
+benchmark_plane_dir=$project_dir/benchmark_planes
+events_dir=/rsgrps/shufang/Events
+parent_process=C_HW
+
+# decay_channel=tataW # temporary
+param_combination=mC_deltaM # temporary
+process_name=$parent_process\_$decay_channel
+
+# Enter /tmp directory which provides storage that is local to the node itself,
+# so that we don't clog up /xdisk or /extra
+
+cd /tmp
+
+# Generate the MadGraph5 process directory
+$mg5 $project_dir/Cards/mg5_proc_cards/$process_name".dat"
+
+
+dataset_name=$parent_process\_$decay_channel\_$param_combination
+benchmark_plane_name=BP_IIB
+
+benchmark_plane=$benchmark_plane_dir/$benchmark_plane_name\_$param_combination".txt"
+
+# FOR TESTING PURPOSES - remove the following line when actually submitting to
+# cluster
+# PBS_ARRAY_INDEX=1 
+
+read mC mH tb <<< `awk -v n=$(($PBS_ARRAY_INDEX + 1)) \
+                'FNR == n {print $3, $1, $4}' $benchmark_plane` 
+
+cd $project_dir
+
+# Set parameters in param_card.dat
+python set_parameters.py $param_combination $mC $mH $tb $process_name
+
+bp_dirname=mC\_$mC\_mH_$mH\_tb_$tb
+
+target_dir=$events_dir/$dataset_name/$bp_dirname
+
+mkdir -p $target_dir
+
+cd /tmp/$process_name
+
+# Set random seed
+n=`ls $target_dir | wc -l`
+sed "s/0       = iseed/$(($n+1))=iseed/g" -i Cards/run_card.dat
+
+# # Generate events
+./bin/generate_events -f --laststep=delphes
+
+# # copy files
+generated_sample=Events/run_01/tag_1_delphes_events.root
+cp $generated_sample $target_dir/sample_${n}.root
+
+# # Cleanup
+cd ..; rm -rf $process_name
+
+date
+
+exit 0
